@@ -54,15 +54,35 @@ const BasicDetail = () => {
   const [availabilityOpen, setAvailabilityOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (data?.current_country && data?.current_state) {
-      const filterCountry = countries.filter((country) => country.label === data.current_country);
-      const filterState = states.filter((state) => state.label === data.current_state);
-      console.log('filterCountry', filterCountry);
-      setCountry(filterCountry[0]?.value);
-      setState(filterState[0]?.value);
+
+ const [flag, setFlag] = useState(true);
+
+ console.log('flag', flag)
+
+ useEffect(() => {
+  if (flag && data?.current_country && countries.length > 0) {
+    const foundCountry = countries.find((c) => c.label === data.current_country);
+    if (foundCountry) {
+      setCountry(foundCountry.value);
     }
-  }, [countries, states]);
+  }
+}, [countries]);
+
+
+useEffect(() => {
+  if (flag && data?.current_state && states.length > 0) {
+    const foundState = states.find((s) => s.label === data.current_state);
+    if (foundState) {
+      setState(foundState.value);
+      setFlag(false); // Set flag to false only after setting both
+    }
+  }
+}, [states]);
+
+
+  
+
+
 
   // Hardcoded dropdown items for work status and availability
   const [workStatusItems] = useState([

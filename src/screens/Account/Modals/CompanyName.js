@@ -40,21 +40,29 @@ const CompanyProfile = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    console.log('running', data.data.country);
-
-    if (data.data) {
-      const filterCountry = countryList.filter((country) => country.label === data.data.country);
-      console.log('filterCountry', filterCountry);
-      setCountry(filterCountry[0]?.value);
-      setCountryValue(filterCountry[0]?.value);
-      fetchState(filterCountry[0]?.value);
-      const filterState = stateList.filter((state) => state.label === data.data.state);
-      console.log('filterState', filterState);
-      setState(filterState[0]?.value);
-      setStateValue(filterState[0]?.value);
+   const [flag, setFlag] = useState(true);
+  
+   console.log('flag', flag)
+  
+   useEffect(() => {
+    if (flag && data?.data.country && countryList.length > 0) {
+      const foundCountry = countryList.find((c) => c.label === data.data.country);
+      if (foundCountry) {
+        setCountryValue(foundCountry.value);
+      }
     }
-  }, [countryList, stateList]);
+  }, [countryList]);
+  
+  
+  useEffect(() => {
+    if (flag && data?.data.state && stateList.length > 0) {
+      const foundState = stateList.find((s) => s.label === data.data.state);
+      if (foundState) {
+        setStateValue(foundState.value);
+        setFlag(false); // Set flag to false only after setting both
+      }
+    }
+  }, [stateList]);
 
   // Fetch country list on component mount
   useEffect(() => {

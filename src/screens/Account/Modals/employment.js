@@ -29,7 +29,7 @@ const Employment = () => {
   const { emp, req, id } = route.params || {};
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const currentEmploymentList = useSelector((state) => state.employment.employmentList);
+
 
   // State variables
   const [years, setYears] = useState('');

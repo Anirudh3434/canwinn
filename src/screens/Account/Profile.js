@@ -45,7 +45,8 @@ export default function Profile() {
   const [data, setData] = useState();
   const [VideoPopMenu, setVideoPopMenu] = useState(false);
   const [VideoProfile, setVideoProfile] = useState(null);
-  45;
+  
+  const [DoneQulaified, setDoneQulified] = useState([]);
 
   const dispatch = useDispatch();
 
@@ -162,6 +163,8 @@ export default function Profile() {
     });
   };
 
+
+  
   // console.log('Recorded video:', VideoProfile);
 
   const pickImage = () => {
@@ -231,7 +234,23 @@ export default function Profile() {
     fetchUserId();
   }, []);
 
+
+
   const { profileDetail, isLoading, isError, refetch } = useFetchProfileDetail(userId);
+
+
+
+  useEffect(()=>{
+    profileDetail.education.map((educ)=>{
+    
+        setDoneQulified((prev)=>[...prev,educ.education
+
+        ])
+      
+    })
+  } ,[profileDetail.education])
+
+  console.log ('Done Qualified:', DoneQulaified);
 
   useEffect(() => {
     if (profileDetail && Object.keys(profileDetail).length > 0) {
@@ -1212,7 +1231,7 @@ export default function Profile() {
                 style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}
               >
                 <Text style={[style.m18, { color: '#000' }]}>Education</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Education')}>
+                <TouchableOpacity onPress={() => navigation.navigate('Education' , {done: DoneQulaified})}>
                   <Text style={[style.m16, { color: '#14B6AA' }]}>Add</Text>
                 </TouchableOpacity>
               </View>
@@ -1220,7 +1239,7 @@ export default function Profile() {
               {profileDetail?.education?.length > 0 ? (
                 profileDetail?.education.map((edu, index) => (
                   <TouchableOpacity
-                    onPress={() => navigation.navigate('Education', { edu: edu, id: userId })}
+                    onPress={() => navigation.navigate('Education', { edu: edu, id: userId  })}
                     key={edu.id}
                     style={{
                       marginBottom: 12,

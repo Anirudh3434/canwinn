@@ -135,7 +135,7 @@ const SkillMenu = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-      <View style={styles.header}>
+       <View style={[styles.header, { marginTop: req === 'ResumeLocal' ? 40 : 0 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>

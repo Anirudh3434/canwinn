@@ -291,7 +291,7 @@ const PersonalDetails = () => {
             >
               {educationList.map((edu, index) => (
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('Education', { edu: edu, id: userId })}
+                  onPress={() => navigation.navigate('Education', { edu: edu, req: 'ResumeLocal' ,id: userId })}
                   key={edu.id}
                   style={{
                     marginBottom: 12,

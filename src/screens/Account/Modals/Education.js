@@ -30,7 +30,7 @@ const EducationDetails = () => {
   const scrollViewRef = React.useRef(null);
 
   const [user_id, setUserId] = useState(null);
-  const { req, edu, id } = route.params || {};
+  const { req, edu, id , done} = route.params || {};
 
   const [loading, setLoading] = useState(false);
 
@@ -43,6 +43,9 @@ const EducationDetails = () => {
     'Diploma',
   ];
 
+
+
+
   const [educationLevel, setEducationLevel] = useState(edu?.education || '');
   const [board, setBoard] = useState(edu?.board_name || '');
   const [marks, setMarks] = useState(edu?.marks || '');
@@ -52,6 +55,13 @@ const EducationDetails = () => {
   const [courseName, setCourseName] = useState(edu?.course_name || '');
   const [specialization, setSpecialization] = useState(edu?.specialization_name || '');
   const [filterEducationOptions, setFilterEducationOptions] = useState(educationLevelOptions);
+
+  const filter = educationLevelOptions.filter((option) => !done?.includes(option));
+
+
+  console.log ('done', done);
+
+  console.log ('filter', filter);
 
   const [boardOpen, setBoardOpen] = useState(false);
 
@@ -84,28 +94,7 @@ const EducationDetails = () => {
 
   console.log('user_id:', user_id);
 
-  useEffect(() => {
-    if (!edu) {
-      const availableOptions = education.educationList
-        ? educationLevelOptions.filter(
-            (option) => !education.educationList.some((item) => item.education === option)
-          )
-        : educationLevelOptions;
 
-      setFilterEducationOptions(availableOptions);
-    } else {
-      const availableOptions = education.educationList
-        ? educationLevelOptions.filter(
-            (option) =>
-              !education.educationList.some(
-                (item) => item.education === option && item.id !== edu.id
-              )
-          )
-        : educationLevelOptions;
-
-      setFilterEducationOptions(availableOptions);
-    }
-  }, [education, edu]);
 
   const boardOptions = [
     { label: 'CBSE', value: 'CBSE' },
@@ -231,6 +220,8 @@ const EducationDetails = () => {
       setLoading(false);
     }
   };
+
+  console.log('req', req)
 
   return (
     <SafeAreaView style={styles.safeArea}>
