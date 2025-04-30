@@ -116,84 +116,84 @@ const EducationDetails = () => {
     { label: 'Other', value: 'Other' },
   ];
 
-const validateInputs = () => {
-  let isValid = true;
+  const validateInputs = () => {
+    let isValid = true;
 
-  if (!educationLevel) {
-    alert('Please select an education level');
-    isValid = false;
-  }
-
-  if ((educationLevel === 'X' || educationLevel === 'XII') && !board) {
-    alert('Please select a board');
-    isValid = false;
-  }
-
-  if (!instituteName) {
-    setInstituteNameError('Please enter institution name');
-    isValid = false;
-  } else {
-    setInstituteNameError('');
-  }
-
-  if (!yearOfCompletion) {
-    setYearOfCompletionError('Please enter the year of completion');
-    isValid = false;
-  } else if (!/^\d{4}$/.test(yearOfCompletion)) {
-    setYearOfCompletionError('Please enter a valid 4-digit year');
-    isValid = false;
-  } else {
-    setYearOfCompletionError('');
-  }
-
-  if (!marks) {
-    setMarksError('Please enter marks');
-    isValid = false;
-  } else {
-    const parsedMarks = Number.parseFloat(marks);
-    if (isNaN(parsedMarks) || parsedMarks < 0 || parsedMarks > 100) {
-      setMarksError('Please enter valid marks between 0 and 100');
+    if (!educationLevel) {
+      alert('Please select an education level');
       isValid = false;
-      console.log('Please enter valid marks between 0 and 100');
-    } else {
-      setMarksError('');
-    }
-  }
-
-  if (educationLevel !== 'X' && educationLevel !== 'XII') {
-    if (!courseName) {
-      setCourseNameError('Please enter course name');
-      isValid = false;
-      console.log('Please enter course name');
-    } else {
-      setCourseNameError('');
     }
 
-    if (!startYear) {
-      setStartYearError('Please enter start year');
+    if ((educationLevel === 'X' || educationLevel === 'XII') && !board) {
+      alert('Please select a board');
       isValid = false;
-      console.log('Please enter start year');
-    } else if (!/^\d{4}$/.test(startYear)) {
-      setStartYearError('Please enter a valid 4-digit start year');
-      isValid = false;
-      console.log('Please enter a valid 4-digit start year');
-    } else if (
-      yearOfCompletion &&
-      /^\d{4}$/.test(yearOfCompletion) &&
-      parseInt(startYear) > parseInt(yearOfCompletion)
-    ) {
-      setStartYearError('Start year cannot be after completion year');
-      setYearOfCompletionError('Completion year cannot be before start year');
-      console.log('Start year cannot be after completion year');
+    }
+
+    if (!instituteName) {
+      setInstituteNameError('Please enter institution name');
       isValid = false;
     } else {
-      setStartYearError('');
+      setInstituteNameError('');
+    }
+
+    if (!yearOfCompletion) {
+      setYearOfCompletionError('Please enter the year of completion');
+      isValid = false;
+    } else if (!/^\d{4}$/.test(yearOfCompletion)) {
+      setYearOfCompletionError('Please enter a valid 4-digit year');
+      isValid = false;
+    } else {
       setYearOfCompletionError('');
     }
-  }
 
-  return isValid;
-};
+    if (!marks) {
+      setMarksError('Please enter marks');
+      isValid = false;
+    } else {
+      const parsedMarks = Number.parseFloat(marks);
+      if (isNaN(parsedMarks) || parsedMarks < 0 || parsedMarks > 100) {
+        setMarksError('Please enter valid marks between 0 and 100');
+        isValid = false;
+        console.log('Please enter valid marks between 0 and 100');
+      } else {
+        setMarksError('');
+      }
+    }
+
+    if (educationLevel !== 'X' && educationLevel !== 'XII') {
+      if (!courseName) {
+        setCourseNameError('Please enter course name');
+        isValid = false;
+        console.log('Please enter course name');
+      } else {
+        setCourseNameError('');
+      }
+
+      if (!startYear) {
+        setStartYearError('Please enter start year');
+        isValid = false;
+        console.log('Please enter start year');
+      } else if (!/^\d{4}$/.test(startYear)) {
+        setStartYearError('Please enter a valid 4-digit start year');
+        isValid = false;
+        console.log('Please enter a valid 4-digit start year');
+      } else if (
+        yearOfCompletion &&
+        /^\d{4}$/.test(yearOfCompletion) &&
+        parseInt(startYear) > parseInt(yearOfCompletion)
+      ) {
+        setStartYearError('Start year cannot be after completion year');
+        setYearOfCompletionError('Completion year cannot be before start year');
+        console.log('Start year cannot be after completion year');
+        isValid = false;
+      } else {
+        setStartYearError('');
+        setYearOfCompletionError('');
+      }
+    }
+
+    return isValid;
+  };
 
   const handleSave = async () => {
     console.log('clicked');
@@ -243,7 +243,9 @@ const validateInputs = () => {
           <Text style={styles.title}>Education</Text>
         </View>
         <TouchableOpacity disabled={loading} onPress={handleSave}>
-          <Text style={styles.saveButton}>{edu ? loading ? 'Saving...' : 'Edit' : loading ? 'Saving...' : 'Save'}</Text>
+          <Text style={styles.saveButton}>
+            {edu ? (loading ? 'Saving...' : 'Edit') : loading ? 'Saving...' : 'Save'}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -387,7 +389,9 @@ const validateInputs = () => {
                     keyboardType="numeric"
                     placeholderTextColor="#C8C8C8"
                   />
-                  {yearOfCompletionError && <Text style={styles.errorText}>{yearOfCompletionError}</Text>}
+                  {yearOfCompletionError && (
+                    <Text style={styles.errorText}>{yearOfCompletionError}</Text>
+                  )}
                 </View>
               </View>
             </View>

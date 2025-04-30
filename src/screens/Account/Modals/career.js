@@ -136,7 +136,6 @@ const Career = () => {
 
   // Save career preferences
   const handleSave = async () => {
-   
     const params = {
       user_id: id,
       prefered_location: preferredLocations.join(','),

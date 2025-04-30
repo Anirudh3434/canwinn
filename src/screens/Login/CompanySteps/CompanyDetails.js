@@ -10,7 +10,7 @@ import {
   SafeAreaView,
   ScrollView,
   Image,
-  BackHandler
+  BackHandler,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -47,11 +47,8 @@ const CompanyDetails = () => {
 
   const [userId, setUserId] = useState(null);
 
-
-
-
-useEffect(() => {
-const getUserId = async () => {
+  useEffect(() => {
+    const getUserId = async () => {
       try {
         console.log('Fetching User ID...');
         const storedUserId = await AsyncStorage.getItem('userId');
@@ -64,14 +61,7 @@ const getUserId = async () => {
       }
     };
     getUserId();
-}, [userId]);
-
-
-
-
-
-
-
+  }, [userId]);
 
   const [errors, setErrors] = useState({
     accountType: false,
@@ -102,69 +92,60 @@ const getUserId = async () => {
   const [countryValue, setCountryValue] = useState(null);
   const [countryItems, setCountryItems] = useState([]);
 
-
   const [stateOpen, setStateOpen] = useState(false);
   const [stateValue, setStateValue] = useState(null);
   const [stateItems, setStateItems] = useState([]);
 
-
   const pickImage = () => {
-  ImagePicker.openPicker({
-    width: 300,
-    height: 300,
-    cropping: true,
-    cropperCircleOverlay: true,
-  })
-  .then(async (image) => {
-    const base64Data = await RNFS.readFile(image.path, 'base64');
-    const blob = {
-      name: image.filename || 'company.jpg',
-      type: image.mime,
-      uri: image.path,
-      data: base64Data,
+    ImagePicker.openPicker({
+      width: 300,
+      height: 300,
+      cropping: true,
+      cropperCircleOverlay: true,
+    })
+      .then(async (image) => {
+        const base64Data = await RNFS.readFile(image.path, 'base64');
+        const blob = {
+          name: image.filename || 'company.jpg',
+          type: image.mime,
+          uri: image.path,
+          data: base64Data,
+        };
+
+        setCompanyLogo(blob);
+        uploadDocument(blob, 'CL');
+      })
+      .catch((error) => {
+        console.log('ImagePicker Error: ', error);
+      });
+  };
+
+  const uploadDocument = async (data, type) => {
+    const payload = {
+      user_id: userId,
+      type: type,
+      file_name: data.name,
+      mime_type: data.type,
+      blob_file: data.data,
     };
 
-    setCompanyLogo(blob);
-    uploadDocument(blob, 'CL');
-  })
-  .catch((error) => {
-    console.log('ImagePicker Error: ', error);
-  });
-};
+    console.log('Payload:', payload);
 
-
-
-const uploadDocument = async (data, type) => {
- 
-  const payload = {
-    user_id: userId,
-    type: type,
-    file_name: data.name,
-    mime_type: data.type,
-    blob_file: data.data
+    try {
+      const response = await axios.post(API_ENDPOINTS.DOCS, payload);
+      console.log(response.data);
+    } catch (error) {
+      console.error('Upload failed:', error);
+    }
   };
 
-  console.log('Payload:', payload);
-
-  try {
-    const response = await axios.post( API_ENDPOINTS.DOCS,payload);
-    console.log(response.data);
-  } catch (error) {
-    console.error('Upload failed:', error);
-  }
-};
-
-useEffect(() => {
-  const backAction = () => {
-    return true;
-  };
-  const backHandler = BackHandler.addEventListener(
-    'hardwareBackPress',
-    backAction
-  );
-  return () => backHandler.remove();
-}, []);
-
+  useEffect(() => {
+    const backAction = () => {
+      return true;
+    };
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, []);
 
   // Fetch countries on component mount
   useEffect(() => {
@@ -181,9 +162,9 @@ useEffect(() => {
   const fetchCountry = async () => {
     try {
       const response = await axios.get(API_ENDPOINTS.COUNTRY);
-      const formattedCountries = response.data.data.map(country => ({
+      const formattedCountries = response.data.data.map((country) => ({
         label: country.country_name,
-        value: country.country_id
+        value: country.country_id,
       }));
       setCountryItems(formattedCountries);
     } catch (error) {
@@ -195,12 +176,11 @@ useEffect(() => {
     try {
       const response = await axios.get(`${API_ENDPOINTS.STATE}?country_id=${countryId}`);
       console.log('states', response.data);
-      const formattedStates = response.data.data.map(state => ({
+      const formattedStates = response.data.data.map((state) => ({
         label: state.state_name,
-        value: state.state_id
+        value: state.state_id,
       }));
       setStateItems(formattedStates);
-      
     } catch (error) {
       console.error('Error fetching state data:', error);
     }
@@ -217,11 +197,11 @@ useEffect(() => {
       pincode: pincode === '',
       companyAddress: companyAddress === '',
     };
-    
+
     setErrors(newErrors);
-    
+
     // Return true if there are no errors
-    return !Object.values(newErrors).some(error => error);
+    return !Object.values(newErrors).some((error) => error);
   };
 
   const handleContinue = () => {
@@ -229,7 +209,7 @@ useEffect(() => {
       // Fields have errors, don't proceed
       return;
     }
-    
+
     const data = {
       company_type: accountType,
       company_name: companyName,
@@ -241,7 +221,7 @@ useEffect(() => {
       pincode: pincode,
       company_address: companyAddress,
     };
-    
+
     dispatch(setCompanyDetails(data));
     navigation.navigate('KycIntro');
   };
@@ -262,7 +242,7 @@ useEffect(() => {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.title}>Company details</Text>
-    
+
           <Text style={styles.accountTypeLabel}>You're creating account as a:</Text>
           <View style={styles.radioContainer}>
             <TouchableOpacity style={styles.radioOption} onPress={() => setAccountType('company')}>
@@ -287,41 +267,47 @@ useEffect(() => {
               <Text style={styles.radioText}>a Consultancy</Text>
             </TouchableOpacity>
           </View>
-          
-        { !companyLogo &&  <TouchableOpacity style={styles.uploadLogo} onPress={pickImage}>
-            <View style={styles.uploadLogoIcon}>
-              <Ionicons name="cloud-upload-outline" size={30} color="#ADADAD" />
-            </View>
-            <Text style={styles.uploadText}>Upload Company logo</Text>
-          </TouchableOpacity> 
-          }
+
+          {!companyLogo && (
+            <TouchableOpacity style={styles.uploadLogo} onPress={pickImage}>
+              <View style={styles.uploadLogoIcon}>
+                <Ionicons name="cloud-upload-outline" size={30} color="#ADADAD" />
+              </View>
+              <Text style={styles.uploadText}>Upload Company logo</Text>
+            </TouchableOpacity>
+          )}
 
           {companyLogo && (
-            <View style={{width: '100%', height: 150, borderRadius: 5 , alignItems: 'center' , justifyContent: 'center'}}>
+            <View
+              style={{
+                width: '100%',
+                height: 150,
+                borderRadius: 5,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <Image
                 source={{ uri: companyLogo.uri }}
                 style={{ width: 150, height: 150, borderRadius: 100 }}
               />
             </View>
           )}
-          
+
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Company</Text>
             <TextInput
               value={companyName}
               onChangeText={(text) => {
                 setCompanyName(text);
-                setErrors({...errors, companyName: false});
+                setErrors({ ...errors, companyName: false });
               }}
-              style={[
-                styles.input, 
-                errors.companyName && styles.inputError
-              ]}
+              style={[styles.input, errors.companyName && styles.inputError]}
               placeholder="Enter Company Name"
             />
             {errors.companyName && <Text style={styles.errorText}>Company name is required</Text>}
           </View>
-          
+
           <View style={[styles.inputContainer, { zIndex: 5000 }]}>
             <Text style={styles.label}>Select Industry</Text>
             <DropDownPicker
@@ -333,22 +319,21 @@ useEffect(() => {
               setOpen={setIndustryOpen}
               setValue={(callback) => {
                 setIndustryValue(callback);
-                setErrors({...errors, industry: false});
+                setErrors({ ...errors, industry: false });
               }}
               setItems={setIndustryItems}
               placeholder="Select Industry"
-              style={[
-                styles.dropdown,
-                errors.industry && styles.dropdownError
-              ]}
+              style={[styles.dropdown, errors.industry && styles.dropdownError]}
               dropDownContainerStyle={styles.dropdownContainer}
               zIndex={5000}
               zIndexInverse={1000}
               onChangeValue={setIndustry}
             />
-            {errors.industry && <Text style={[styles.errorText , {marginTop : 5}]}>Industry is required</Text>}
+            {errors.industry && (
+              <Text style={[styles.errorText, { marginTop: 5 }]}>Industry is required</Text>
+            )}
           </View>
-          
+
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Number of Employees</Text>
             <TextInput
@@ -359,7 +344,7 @@ useEffect(() => {
               keyboardType="number-pad"
             />
           </View>
-          
+
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Your Designation</Text>
             <TextInput
@@ -369,7 +354,7 @@ useEffect(() => {
               placeholder="Enter Designation"
             />
           </View>
-          
+
           <View style={[styles.inputContainer, { zIndex: 4000 }]}>
             <Text style={styles.label}>Select Country</Text>
             <DropDownPicker
@@ -382,14 +367,11 @@ useEffect(() => {
               setOpen={setCountryOpen}
               setValue={(callback) => {
                 setCountryValue(callback);
-                setErrors({...errors, countryId: false});
+                setErrors({ ...errors, countryId: false });
               }}
               setItems={setCountryItems}
               placeholder="Select Country"
-              style={[
-                styles.dropdown,
-                errors.countryId && styles.dropdownError
-              ]}
+              style={[styles.dropdown, errors.countryId && styles.dropdownError]}
               dropDownContainerStyle={styles.dropdownContainer}
               zIndex={4000}
               zIndexInverse={2000}
@@ -397,12 +379,14 @@ useEffect(() => {
                 setCountryId(value);
                 setStateValue(null); // Reset state when country changes
                 setStateId(null);
-                setErrors({...errors, countryId: false});
+                setErrors({ ...errors, countryId: false });
               }}
             />
-            {errors.countryId && <Text style={[styles.errorText , {marginTop : 5}]}>Country is required</Text>}
+            {errors.countryId && (
+              <Text style={[styles.errorText, { marginTop: 5 }]}>Country is required</Text>
+            )}
           </View>
-          
+
           <View style={[styles.inputContainer, { zIndex: 3000 }]}>
             <Text style={styles.label}>Select State</Text>
             <DropDownPicker
@@ -415,81 +399,73 @@ useEffect(() => {
               setOpen={setStateOpen}
               setValue={(callback) => {
                 setStateValue(callback);
-                setErrors({...errors, stateId: false});
+                setErrors({ ...errors, stateId: false });
               }}
               setItems={setStateItems}
               placeholder="Select State"
-              style={[
-                styles.dropdown,
-                errors.stateId && styles.dropdownError
-              ]}
+              style={[styles.dropdown, errors.stateId && styles.dropdownError]}
               dropDownContainerStyle={styles.dropdownContainer}
               zIndex={3000}
               zIndexInverse={3000}
               onChangeValue={(value) => {
                 setStateId(value);
-                setErrors({...errors, stateId: false});
+                setErrors({ ...errors, stateId: false });
               }}
               disabled={!countryId}
             />
-            {errors.stateId && <Text style={[styles.errorText , {marginTop : 5}]}>State is required</Text>}
+            {errors.stateId && (
+              <Text style={[styles.errorText, { marginTop: 5 }]}>State is required</Text>
+            )}
           </View>
-          
+
           <View style={styles.inputContainer}>
             <Text style={styles.label}>City</Text>
             <TextInput
-              style={[
-                styles.input,
-                errors.city && styles.inputError
-              ]}
+              style={[styles.input, errors.city && styles.inputError]}
               placeholder="Enter City"
               value={city}
               onChangeText={(text) => {
                 setCity(text);
-                setErrors({...errors, city: false});
+                setErrors({ ...errors, city: false });
               }}
             />
             {errors.city && <Text style={styles.errorText}>City is required</Text>}
           </View>
-          
+
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Pin Code</Text>
             <TextInput
               value={pincode}
               onChangeText={(text) => {
                 setPincode(text);
-                setErrors({...errors, pincode: false});
+                setErrors({ ...errors, pincode: false });
               }}
-              style={[
-                styles.input,
-                errors.pincode && styles.inputError
-              ]}
+              style={[styles.input, errors.pincode && styles.inputError]}
               placeholder="Enter Pin Code"
               keyboardType="number-pad"
             />
             {errors.pincode && <Text style={styles.errorText}>Pin Code is required</Text>}
           </View>
-          
+
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Company Address</Text>
             <TextInput
               value={companyAddress}
               onChangeText={(text) => {
                 setCompanyAddress(text);
-                setErrors({...errors, companyAddress: false});
+                setErrors({ ...errors, companyAddress: false });
               }}
-              style={[
-                styles.TextArea,
-                errors.companyAddress && styles.inputError
-              ]}
+              style={[styles.TextArea, errors.companyAddress && styles.inputError]}
               placeholder="Enter Company Address"
               multiline={true}
               numberOfLines={6}
               textAlignVertical="top"
             />
-            {errors.companyAddress && <Text style={[styles.errorText , {marginTop : 5}]}>Company Address is required</Text>}
+            {errors.companyAddress && (
+              <Text style={[styles.errorText, { marginTop: 5 }]}>Company Address is required</Text>
+            )}
           </View>
-          
+
           <TouchableOpacity onPress={handleContinue} style={styles.button}>
             <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold' }}>Continue</Text>
           </TouchableOpacity>
@@ -508,7 +484,6 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   header: {
-   
     paddingVertical: 10,
     paddingHorizontal: 16,
   },

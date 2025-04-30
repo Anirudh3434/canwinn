@@ -19,7 +19,6 @@ const ProfessionalDetail = () => {
   const route = useRoute();
   const { data, id } = route.params;
 
-
   const [currentIndustry, setCurrentIndustry] = useState(data?.current_industry);
   const [currentDepartment, setCurrentDepartment] = useState(data?.current_department);
   const [currentJobRole, setCurrentJobRole] = useState(data?.current_job_role);
@@ -32,8 +31,6 @@ const ProfessionalDetail = () => {
   const [departmentError, setDepartmentError] = useState('');
   const [roleCategoryError, setRoleCategoryError] = useState('');
   const [jobRoleError, setJobRoleError] = useState('');
-
-
 
   const validateInputs = () => {
     let isValid = true;

@@ -1,13 +1,6 @@
 // VideoViewer.js
 import React, { useRef } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-} from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 import Video from 'react-native-video';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Colors } from '../../theme/color'; // your color theme
@@ -25,7 +18,9 @@ const VideoViewer = ({ route, navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>{fileName || 'Video'}</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {fileName || 'Video'}
+        </Text>
         <View style={{ width: 40 }} />
       </View>
 

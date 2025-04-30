@@ -35,9 +35,7 @@ const SkillMenu = () => {
 
   const navigation = useNavigation();
 
-  console.log(data)
-
-
+  console.log(data);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -62,25 +60,28 @@ const SkillMenu = () => {
       }));
 
       setDropdownItems(skillList);
-
-
     } catch (error) {
       console.error('Error fetching skills:', error);
       Alert.alert('Error', 'Failed to fetch skills. Please check your network connection.');
     }
   };
-    useEffect(() => {
-    if (dropdownItems.length > 0 && Array.isArray(data)) { // Check if dropdownItems is populated
-        const initialSkills = data.map(label => {
-            const trimmedLabel = label.trim().toLowerCase();
-            const match = dropdownItems.find(item => item.label.trim().toLowerCase() === trimmedLabel);
-            return match ? { label: match.label, value: match.value } : null;
-        }).filter(skill => skill !== null); // Remove null values
+  useEffect(() => {
+    if (dropdownItems.length > 0 && Array.isArray(data)) {
+      // Check if dropdownItems is populated
+      const initialSkills = data
+        .map((label) => {
+          const trimmedLabel = label.trim().toLowerCase();
+          const match = dropdownItems.find(
+            (item) => item.label.trim().toLowerCase() === trimmedLabel
+          );
+          return match ? { label: match.label, value: match.value } : null;
+        })
+        .filter((skill) => skill !== null); // Remove null values
 
-        setSkillValues(initialSkills.map(skill => skill.value));
-        setSkillLabels(initialSkills.map(skill => skill.label));
+      setSkillValues(initialSkills.map((skill) => skill.value));
+      setSkillLabels(initialSkills.map((skill) => skill.label));
     }
-}, [dropdownItems, data]);
+  }, [dropdownItems, data]);
 
   useEffect(() => {
     if (user_id) fetchSkills();
@@ -147,42 +148,41 @@ const SkillMenu = () => {
       <ScrollView style={styles.content} nestedScrollEnabled={true}>
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Skill/Software name</Text>
-        
-        <View style={{flexDirection: 'row' , alignItems: 'center'}}>
 
-          <View style={styles.dropdownContainer}>
-            <DropDownPicker
-              open={open}
-              value={selectedSkill}
-              items={dropdownItems}
-              setOpen={setOpen}
-              setValue={setSelectedSkill}
-              setItems={setDropdownItems}
-              placeholder="Select or search for a skill"
-              style={styles.dropdown}
-              dropDownContainerStyle={styles.dropdownList}
-              listMode="SCROLLVIEW"
-              scrollViewProps={{ nestedScrollEnabled: true }}
-              maxHeight={200}
-              searchable={true}
-              searchPlaceholder="Search for skills..."
-              searchContainerStyle={styles.searchContainer}
-              searchTextInputStyle={styles.searchTextInput}
-              searchPlaceholderTextColor="#999"
-              onChangeSearchText={(text) => {
-                // No need to set state here if DropDownPicker handles it internally
-              }}
-            />
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={styles.dropdownContainer}>
+              <DropDownPicker
+                open={open}
+                value={selectedSkill}
+                items={dropdownItems}
+                setOpen={setOpen}
+                setValue={setSelectedSkill}
+                setItems={setDropdownItems}
+                placeholder="Select or search for a skill"
+                style={styles.dropdown}
+                dropDownContainerStyle={styles.dropdownList}
+                listMode="SCROLLVIEW"
+                scrollViewProps={{ nestedScrollEnabled: true }}
+                maxHeight={200}
+                searchable={true}
+                searchPlaceholder="Search for skills..."
+                searchContainerStyle={styles.searchContainer}
+                searchTextInputStyle={styles.searchTextInput}
+                searchPlaceholderTextColor="#999"
+                onChangeSearchText={(text) => {
+                  // No need to set state here if DropDownPicker handles it internally
+                }}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.addButton]}
+              onPress={handleAddSkill}
+              disabled={!selectedSkill}
+            >
+              <Text style={styles.addButtonText}>+ Add</Text>
+            </TouchableOpacity>
           </View>
-
-          <TouchableOpacity
-            style={[styles.addButton]}
-            onPress={handleAddSkill}
-            disabled={!selectedSkill}
-          >
-            <Text style={styles.addButtonText}>+ Add</Text>
-          </TouchableOpacity>
-        </View>
 
           <View style={styles.badgeContainer}>
             {skillLabels.map((skill, index) => (

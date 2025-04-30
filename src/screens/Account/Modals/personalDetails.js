@@ -140,7 +140,7 @@ const PersonalDetail = () => {
             user_id: id,
           })
         );
-        setLoading(false)
+        setLoading(false);
         navigation.navigate('MyTabs');
       } else {
         Alert.alert('Something Went Wrong', response.data?.message || 'Unknown error');
@@ -163,7 +163,10 @@ const PersonalDetail = () => {
           <Text style={styles.title}>Personal Details</Text>
         </View>
         <TouchableOpacity onPress={handleSave}>
-          <Text disabled={loading} style={styles.saveButton}> {loading ? 'Saving...' : 'Save'}</Text>
+          <Text disabled={loading} style={styles.saveButton}>
+            {' '}
+            {loading ? 'Saving...' : 'Save'}
+          </Text>
         </TouchableOpacity>
       </View>
       <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">

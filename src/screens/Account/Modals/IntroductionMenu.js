@@ -87,7 +87,7 @@ const IntroductionScreen = () => {
           </View>
 
           <TouchableOpacity onPress={handleSave} disabled={loading}>
-            <Text style={styles.saveButton}>{loading ? 'Saving...': 'Save'}</Text>
+            <Text style={styles.saveButton}>{loading ? 'Saving...' : 'Save'}</Text>
           </TouchableOpacity>
         </View>
 
@@ -124,7 +124,9 @@ const IntroductionScreen = () => {
               multiline
               textAlignVertical="top"
             />
-            {errors.profileHeadline && <Text style={styles.errorText}>{errors.profileHeadline}</Text>}
+            {errors.profileHeadline && (
+              <Text style={styles.errorText}>{errors.profileHeadline}</Text>
+            )}
             <Text style={styles.characterCount}>{profileHeadline.length}/250</Text>
           </View>
         </View>

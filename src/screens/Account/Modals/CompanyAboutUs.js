@@ -55,22 +55,21 @@ export const CompanyAboutUs = () => {
     };
 
     try {
-      setLoading(true)
+      setLoading(true);
       const response = await axios.post(API_ENDPOINTS.COMPANY_DETAILS, payload);
       const res = response?.data;
 
       if (res?.status === 'success') {
-      
         navigation.navigate('MyTabs');
-        setLoading(false)
+        setLoading(false);
       } else {
         Alert.alert('Error', res.message || 'Update failed');
-        setLoading(false)
+        setLoading(false);
       }
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Something went wrong while saving');
-      setLoading(false)
+      setLoading(false);
     }
   };
 

@@ -56,18 +56,18 @@ const Application = ({ navigation }) => {
 
   const fetchJobPosting = async () => {
     if (!userId) return;
-    
+
     setIsLoading(true);
     try {
       let status = 'Active';
       if (selectedBadge === 'Inactive') {
         status = 'Inactive';
       }
-      
+
       const response = await axios.get(API_ENDPOINTS.FETCH_JOB_POSTING, {
-        params: { user_id: userId, status }
+        params: { user_id: userId, status },
       });
-      
+
       if (response.data && response.data.data) {
         setApplications(response.data.data);
       } else {
@@ -95,15 +95,15 @@ const Application = ({ navigation }) => {
   }, [userId, selectedBadge]);
 
   const toggleMenu = (jobId) => {
-    setMenuVisibleForJobId(prevId => prevId === jobId ? null : jobId);
+    setMenuVisibleForJobId((prevId) => (prevId === jobId ? null : jobId));
   };
 
   const badgeOptions = ['All Vacancies', 'Active', 'Inactive'];
 
   const renderEmptyState = () => (
     <View style={styles.mainContainer}>
-      <Image 
-        style={styles.image} 
+      <Image
+        style={styles.image}
         source={require('../../../assets/image/NoApplication.png')}
         defaultSource={require('../../../assets/image/NoApplication.png')}
       />
@@ -112,8 +112,8 @@ const Application = ({ navigation }) => {
         Create a job vacancy for your company and start finding new high-quality employees
       </Text>
 
-      <TouchableOpacity 
-        onPress={() => navigation.navigate('AddJob')} 
+      <TouchableOpacity
+        onPress={() => navigation.navigate('AddJob')}
         style={styles.button}
         activeOpacity={0.7}
       >
@@ -148,9 +148,9 @@ const Application = ({ navigation }) => {
       job_location: job.JOB_LOCATION || '',
       job_requirements: job.JOB_REQUIRMENTS || '',
       education: job.EDUCATION || '',
-      status: job.STATUS || 'Active'
+      status: job.STATUS || 'Active',
     };
-      
+
     Alert.alert(
       'Confirm Repost',
       'Are you sure you want to repost this job?',
@@ -184,7 +184,7 @@ const Application = ({ navigation }) => {
       Alert.alert('Error', 'Invalid job data');
       return;
     }
-    
+
     Alert.alert(
       'Confirm Delete',
       'Are you sure you want to delete this job posting?',
@@ -242,11 +242,7 @@ const Application = ({ navigation }) => {
         />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity 
-            style={styles.retryButton} 
-            onPress={fetchUserId}
-            activeOpacity={0.7}
-          >
+          <TouchableOpacity style={styles.retryButton} onPress={fetchUserId} activeOpacity={0.7}>
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
@@ -265,8 +261,8 @@ const Application = ({ navigation }) => {
       />
 
       {applications.length > 0 && (
-        <TouchableOpacity 
-          style={styles.addButton} 
+        <TouchableOpacity
+          style={styles.addButton}
           onPress={() => navigation.navigate('AddJob')}
           activeOpacity={0.7}
         >
@@ -288,20 +284,19 @@ const Application = ({ navigation }) => {
 
       {/* Badge Container */}
       <View style={styles.badgeContainer}>
-          {badgeOptions.map((badge) => (
-            <TouchableOpacity
-              key={badge}
-              style={selectedBadge === badge ? styles.badge : styles.unSelectedBadge}
-              onPress={() => setSelectedBadge(badge)}
-              activeOpacity={0.7}
-            >
-              <Text style={selectedBadge === badge ? styles.badgeText : styles.unSelectedBadgeText}>
-                {badge}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-  
+        {badgeOptions.map((badge) => (
+          <TouchableOpacity
+            key={badge}
+            style={selectedBadge === badge ? styles.badge : styles.unSelectedBadge}
+            onPress={() => setSelectedBadge(badge)}
+            activeOpacity={0.7}
+          >
+            <Text style={selectedBadge === badge ? styles.badgeText : styles.unSelectedBadgeText}>
+              {badge}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       {/* Application List or Empty State */}
       {applications.length > 0 ? (
@@ -320,11 +315,11 @@ const Application = ({ navigation }) => {
                   onPress={() => toggleJobApplicants(index)}
                 />
               </View>
-              
+
               {/* Only show menu for the card that was clicked */}
               {menuVisibleForJobId === (item.job_id || index) && (
                 <View style={styles.menu}>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     onPress={() => {
                       setMenuVisibleForJobId(null);
                       handleRepost(item);
@@ -333,7 +328,7 @@ const Application = ({ navigation }) => {
                   >
                     <Text style={styles.menuItem}>Re-Post</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     onPress={() => {
                       setMenuVisibleForJobId(null);
                       navigation.navigate('AddJob', { job: item });
@@ -342,7 +337,7 @@ const Application = ({ navigation }) => {
                   >
                     <Text style={styles.menuItem}>Edit</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     onPress={() => {
                       setMenuVisibleForJobId(null);
                       handleDelete(item);

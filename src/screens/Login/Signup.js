@@ -286,8 +286,6 @@ export default function Signup() {
         // ✅ Create new user
         const userCredential = await auth().createUserWithEmailAndPassword(email, password);
         firebaseUser = userCredential.user;
-
-      
       }
 
       // ✅ Firebase User Created or Linked → Store UID

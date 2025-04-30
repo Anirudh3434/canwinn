@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  BackHandler,
 } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import { useNavigation } from '@react-navigation/native';
@@ -21,7 +22,7 @@ import { API_ENDPOINTS } from '../../api/apiConfig';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyB0za9KmGAwFEMFzQnkNezm2xW4rHPEczU'; // Your API Key
 
-const { height, width } = Dimensions.get('window'); 
+const { height, width } = Dimensions.get('window');
 
 const LocationSelection = () => {
   const [selectedLocation, setSelectedLocation] = useState('');
@@ -54,22 +55,90 @@ const LocationSelection = () => {
     fetchUserId();
   }, []);
 
-  const fetchLocation = async () => {
-    if (Platform.OS === 'android') {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: 'Location Access Required',
-          message: 'This app needs to access your location',
-          buttonPositive: 'OK',
-          buttonNegative: 'Cancel',
-        }
-      );
+  useEffect(() => {
+    const backAction = () => {
+      // Your custom back button logic
+      return true; // Prevent default behavior
+    };
 
-      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-        Alert.alert('Permission Denied', 'Location permission not granted');
-        return;
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => backHandler.remove(); // Clean up on unmount
+  }, []);
+
+  const requestLocationPermission = async () => {
+    if (Platform.OS === 'ios') {
+      // iOS permission handling is done by the Geolocation service itself
+      return true;
+    }
+
+    try {
+      // For Android 12+ (API 31+), you might need both permissions
+      if (Platform.Version >= 31) {
+        const fineLocationGranted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Precise Location Permission',
+            message:
+              'We need access to your precise location to show relevant information near you.',
+            buttonPositive: 'OK',
+            buttonNegative: 'Cancel',
+          }
+        );
+
+        const backgroundLocationGranted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
+          {
+            title: 'Background Location Permission',
+            message:
+              'We need access to your location in the background to provide continuous service.',
+            buttonPositive: 'OK',
+            buttonNegative: 'Cancel',
+          }
+        );
+
+        return fineLocationGranted === PermissionsAndroid.RESULTS.GRANTED;
       }
+      // For Android 10+ (API 29+)
+      else if (Platform.Version >= 29) {
+        const fineLocationGranted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Location Permission',
+            message: 'We need access to your location to show relevant information near you.',
+            buttonPositive: 'OK',
+            buttonNegative: 'Cancel',
+          }
+        );
+
+        return fineLocationGranted === PermissionsAndroid.RESULTS.GRANTED;
+      }
+      // For Android 9 and below
+      else {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Location Permission',
+            message: 'We need access to your location to show relevant information near you.',
+            buttonPositive: 'OK',
+            buttonNegative: 'Cancel',
+          }
+        );
+
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      }
+    } catch (err) {
+      console.warn('Error requesting location permission:', err);
+      return false;
+    }
+  };
+
+  const fetchLocation = async () => {
+    const hasPermission = await requestLocationPermission();
+
+    if (!hasPermission) {
+      Alert.alert('Permission Denied', 'Location permission not granted');
+      return;
     }
 
     setLoading(true);
@@ -84,18 +153,23 @@ const LocationSelection = () => {
         try {
           const response = await fetch(url);
           const data = await response.json();
-          if (data.status === 'OK') {
+
+          if (data.status === 'OK' && data.results.length > 0) {
             // Extract city name or locality from the address components
             let cityName = null;
-            for (const component of data.results[0].address_components) {
-              if (component.types.includes('locality') || 
-                  component.types.includes('administrative_area_level_2') ||
-                  component.types.includes('administrative_area_level_1')) {
+            const addressComponents = data.results[0].address_components;
+
+            for (const component of addressComponents) {
+              if (
+                component.types.includes('locality') ||
+                component.types.includes('administrative_area_level_2') ||
+                component.types.includes('administrative_area_level_1')
+              ) {
                 cityName = component.long_name;
                 break;
               }
             }
-            
+
             const address = cityName || data.results[0].formatted_address;
             setCurrentLocation(address);
             setSelectedLocation(address);
@@ -103,15 +177,15 @@ const LocationSelection = () => {
             Alert.alert('Failed to get location', 'Try again later');
           }
         } catch (error) {
+          console.error('Error fetching location details:', error);
           Alert.alert('Error', 'Failed to fetch location');
-          console.error(error);
         } finally {
           setLoading(false);
         }
       },
       (error) => {
-        console.error(error);
-        Alert.alert('Error', 'Failed to get location. Please enable GPS.');
+        console.error('Geolocation error:', error);
+        Alert.alert('Error', 'Failed to get location. Please ensure GPS is enabled.');
         setLoading(false);
       },
       {
@@ -216,10 +290,7 @@ const LocationSelection = () => {
           ))}
         </View>
 
-        <TouchableOpacity
-          style={styles.proceedButton}
-          onPress={handleSubmit}
-        >
+        <TouchableOpacity style={styles.proceedButton} onPress={handleSubmit}>
           <Text style={styles.proceedButtonText}>Proceed</Text>
         </TouchableOpacity>
       </View>

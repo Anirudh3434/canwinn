@@ -38,11 +38,11 @@ const ProfileSummary = () => {
       setLoading(true);
       const response = axios.post(API_ENDPOINTS.Profile_SUMMARY, params);
       if ((await response).data.status === 'success') {
-        setLoading(false)
+        setLoading(false);
         navigation.navigate('MyTabs');
       }
     } catch (error) {
-      setLoading(false)
+      setLoading(false);
       console.error(error);
     }
   };

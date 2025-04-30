@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DocumentPicker from 'react-native-document-picker';
 import { launchCamera } from 'react-native-image-picker';
@@ -24,82 +24,119 @@ import RNFS from 'react-native-fs';
 
 const { width, height } = Dimensions.get('window');
 
+// Maximum allowed file uploads
+const MAX_FILES = 2;
+
 const KycScreen = () => {
   const navigation = useNavigation();
+  const isMounted = useRef(true);
+  const companyData = useSelector((state) => state.companyDetail);
+
+  // User and company state
   const [userId, setUserId] = useState(null);
+  const [companyLogo, setCompanyLogo] = useState(null);
   const [gstNumber, setGstNumber] = useState('');
-  const [companyId, setCompanyId] = useState(null);
+
+  // Form state
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState([]);
-  
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+
   // Dropdown state
   const [open, setOpen] = useState(false);
   const [proofType, setProofType] = useState(null);
-  const [items, setItems] = useState([
+  const [items] = useState([
     { label: 'Aadhar Card', value: 'aadhar' },
     { label: 'Pan Card', value: 'pan' },
     { label: 'Voter ID', value: 'voter' },
   ]);
-  
-  const [uploadedFiles, setUploadedFiles] = useState([]);
-  const companyData = useSelector((state) => state.companyDetail);
 
-  // Fetch user ID on component mount
+  // Handle cleanup when component unmounts
   useEffect(() => {
-    fetchUserId();
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
-  console.log(companyData)
+  // Load user data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+      return () => {};
+    }, [])
+  );
 
-  const fetchUserId = async () => {
+  // Check if form is valid for submission
+  const isFormValid = proofType && uploadedFiles.length > 0 && gstNumber.trim().length === 15;
+
+  const fetchUserData = async () => {
     try {
       const storedUserId = await AsyncStorage.getItem('userId');
-      if (storedUserId) {
-        setUserId(+storedUserId);
-      } else {
+      if (!storedUserId) {
         Alert.alert('Error', 'User not logged in');
         navigation.navigate('Login');
+        return;
       }
+
+      const parsedUserId = parseInt(storedUserId, 10);
+      setUserId(parsedUserId);
+
+      // Fetch company logo
+      fetchCompanyLogo(parsedUserId);
     } catch (error) {
       console.error('Error fetching user data:', error);
       Alert.alert('Error', 'Could not retrieve user information');
     }
   };
 
+  const fetchCompanyLogo = async (uid) => {
+    try {
+      const response = await axios.get(`${API_ENDPOINTS.DOCS}?user_id=${uid}`);
+      if (response.data.status === 'success' && isMounted.current) {
+        setCompanyLogo(response.data.data.comp_url);
+      }
+    } catch (error) {
+      console.error('Error fetching company logo:', error);
+    }
+  };
+
   const validateForm = () => {
- 
-    
-    
- 
-    
-    
-    if (!gstNumber || gstNumber.trim().length < 15) {
+    if (!proofType) {
+      Alert.alert('Missing Information', 'Please select a Name and Address Proof Type');
+      return false;
+    }
+
+    if (uploadedFiles.length === 0) {
+      Alert.alert('Missing Information', 'Please upload at least one proof document');
+      return false;
+    }
+
+    if (!gstNumber || gstNumber.trim().length !== 15) {
       Alert.alert('Invalid GST Number', 'Please enter a valid 15-digit GST Number');
       return false;
     }
-    
+
     return true;
   };
 
-  const uploadDocument = async (blob, type) => {
-    if (!userId) return;
-    
+  const uploadDocument = async (file, docType) => {
+    if (!userId) return null;
+
     try {
       const payload = {
         user_id: userId,
-        type: type || proofType,
-        file_name: blob.name,
-        mime_type: blob.type,
-        blob_file: blob.data
+        type: docType || proofType,
+        file_name: file.name,
+        mime_type: file.type,
+        blob_file: file.data,
       };
 
       const response = await axios.post(API_ENDPOINTS.DOCS, payload);
-      
+
       if (response.data.status !== 'success') {
         throw new Error(response.data.message || 'Upload failed');
       }
-      
+
       return response.data;
     } catch (error) {
       console.error('Upload failed:', error);
@@ -107,125 +144,168 @@ const KycScreen = () => {
     }
   };
 
-  const handleKycAndCompanyRegister = async () => {
-    if (!validateForm()) return;
-    
-    setIsLoading(true);
-    
-    const body = {
-      ...companyData,
-      company_gstin: gstNumber,
-    };
-
+  const updateUserProgress = async () => {
     try {
-      // Step 1: Register company
-      const response = await axios.post(API_ENDPOINTS.COMPANY_DETAILS, body);
-
-      if (response.data.status !== 'success') {
-        throw new Error(response.data.message || 'Company registration failed');
+      // Get current step
+      const getStepsResponse = await axios.get(`${API_ENDPOINTS.STEP}?user_id=${userId}`);
+      if (getStepsResponse.data.status !== 'success') {
+        throw new Error('Could not retrieve user progress');
       }
 
-      const companyIDFromResponse = response.data.company_id;
-      setCompanyId(companyIDFromResponse);
-      
-      // Step 2: Create employer association
-      const empResponse = await axios.post(API_ENDPOINTS.EMPLOYER, {
+      // Update step
+      const currentStep = +getStepsResponse.data.data.steps;
+      const postStepResponse = await axios.post(API_ENDPOINTS.STEP, {
         user_id: userId,
-        company_id: companyIDFromResponse,
-        user_company_role: 'Admin',
+        steps: currentStep + 1,
       });
+
+      if (postStepResponse.data.status !== 'success') {
+        throw new Error('Could not update user progress');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      throw error;
+    }
+  };
+
+  const handleKycAndCompanyRegister = async () => {
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+
+    try {
+      // Step 1: Upload documents in parallel
+      const uploadPromises = uploadedFiles.map((file) => uploadDocument(file, 'VD'));
+      await Promise.all(uploadPromises);
+
+      // Step 2: Register company
+      const companyPayload = {
+        ...companyData,
+        company_gstin: gstNumber,
+        company_logo: companyLogo,
+      };
+
+      const companyResponse = await axios.post(API_ENDPOINTS.COMPANY_DETAILS, companyPayload);
+
+      if (companyResponse.data.status !== 'success') {
+        throw new Error(companyResponse.data.message || 'Company registration failed');
+      }
+
+      const companyId = companyResponse.data.company_id;
+
+      // Step 3: Create employer association
+      const employerPayload = {
+        user_id: userId,
+        company_id: companyId,
+        user_company_role: 'Admin',
+      };
+
+      const empResponse = await axios.post(API_ENDPOINTS.EMPLOYER, employerPayload);
 
       if (empResponse.data.status !== 'success') {
         throw new Error(empResponse.data.message || 'Employer registration failed');
       }
-      
-      // Step 3: Update user steps
-      const getStepsResponse = await axios.get(`${API_ENDPOINTS.STEP}?user_id=${userId}`);
-      
-      if (getStepsResponse.data.status !== 'success') {
-        throw new Error('Could not retrieve user progress');
-      }
-      
-      const postStepResponse = await axios.post(API_ENDPOINTS.STEP, {
-        user_id: userId,
-        steps: +getStepsResponse.data.data.steps + 1,
-      });
-      
-      if (postStepResponse.data.status !== 'success') {
-        throw new Error('Could not update user progress');
-      }
-      
+
+      // Step 4: Update user steps
+      await updateUserProgress();
+
       // Success - navigate to next screen
-      Alert.alert('Success', 'Registration completed successfully');
-      navigation.navigate('Validate');
-      
+      if (isMounted.current) {
+        Alert.alert('Success', 'Registration completed successfully');
+        navigation.navigate('Validate');
+      }
     } catch (error) {
-      console.error('Registration error:', error);
-      Alert.alert(
-        'Registration Failed',
-        error.message || 'Unable to complete registration. Please try again.'
-      );
+      if (isMounted.current) {
+        console.error('Registration error:', error);
+        Alert.alert(
+          'Registration Failed',
+          error.message || 'Unable to complete registration. Please try again.'
+        );
+      }
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const readFileAsBase64 = async (uri) => {
+    try {
+      const filePath = uri.replace('file://', '');
+      return await RNFS.readFile(filePath, 'base64');
+    } catch (error) {
+      console.error('Error reading file:', error);
+      throw error;
     }
   };
 
   const handleFileUpload = async () => {
-    if (uploadedFiles.length >= 2) {
-      Alert.alert('File Limit Reached', 'You can only upload 2 documents');
+    if (uploadedFiles.length >= MAX_FILES) {
+      Alert.alert('File Limit Reached', `You can only upload ${MAX_FILES} documents`);
       return;
     }
-    
+
     try {
       setIsUploading(true);
-      const res = await DocumentPicker.pick({
+      const result = await DocumentPicker.pick({
         type: [
-          DocumentPicker.types.pdf, 
+          DocumentPicker.types.pdf,
           DocumentPicker.types.images,
           DocumentPicker.types.doc,
-          DocumentPicker.types.docx
+          DocumentPicker.types.docx,
         ],
         allowMultiSelection: uploadedFiles.length === 0,
       });
 
-      // Process each selected file
-      for (const file of res) {
-        const filePath = file.uri.replace('file://', '');
-        const base64Data = await RNFS.readFile(filePath, 'base64');
-        
-        const blob = {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          uri: file.uri,
-          data: base64Data,
-        };
+      if (result && result.length > 0) {
+        const newFiles = [];
+        const availableSlots = MAX_FILES - uploadedFiles.length;
+        const filesToProcess = result.slice(0, availableSlots);
 
-        // Add to UI list
-        setUploadedFiles(prev => {
-          const updated = [...prev, blob];
-          return updated.slice(0, 2); // Keep max 2 files
-        });
-        
+        for (const file of filesToProcess) {
+          const base64Data = await readFileAsBase64(file.uri);
+
+          const blob = {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            uri: file.uri,
+            data: base64Data,
+          };
+          newFiles.push(blob);
+        }
+
+        if (isMounted.current) {
+          setUploadedFiles((prev) => [...prev, ...newFiles]);
+        }
       }
     } catch (err) {
       if (DocumentPicker.isCancel(err)) {
         console.log('User cancelled file selection');
       } else {
         console.error('Error uploading file:', err);
-        Alert.alert('File Selection Error', 'There was a problem selecting or processing your file');
+        if (isMounted.current) {
+          Alert.alert(
+            'File Selection Error',
+            'There was a problem selecting or processing your file'
+          );
+        }
       }
     } finally {
-      setIsUploading(false);
+      if (isMounted.current) {
+        setIsUploading(false);
+      }
     }
   };
 
   const handleOpenCamera = async () => {
-    if (uploadedFiles.length >= 2) {
-      Alert.alert('File Limit Reached', 'You can only upload 2 documents');
+    if (uploadedFiles.length >= MAX_FILES) {
+      Alert.alert('File Limit Reached', `You can only upload ${MAX_FILES} documents`);
       return;
     }
-    
+
     const options = {
       mediaType: 'photo',
       maxWidth: 1024,
@@ -239,21 +319,29 @@ const KycScreen = () => {
       launchCamera(options, async (response) => {
         if (response.didCancel) {
           console.log('User cancelled camera');
-          setIsUploading(false);
+          if (isMounted.current) setIsUploading(false);
         } else if (response.errorCode) {
           console.log('Camera Error: ', response.errorMessage);
-          Alert.alert('Camera Error', response.errorMessage);
-          setIsUploading(false);
+          if (isMounted.current) {
+            Alert.alert('Camera Error', response.errorMessage);
+            setIsUploading(false);
+          }
         } else if (response.assets && response.assets.length > 0) {
           const asset = response.assets[0];
-          
-          // If base64 isn't included directly, read the file
+
           let base64Data = asset.base64;
           if (!base64Data) {
-            const filePath = asset.uri.replace('file://', '');
-            base64Data = await RNFS.readFile(filePath, 'base64');
+            try {
+              base64Data = await readFileAsBase64(asset.uri);
+            } catch (error) {
+              if (isMounted.current) {
+                Alert.alert('Error', 'Failed to process camera image');
+                setIsUploading(false);
+              }
+              return;
+            }
           }
-          
+
           const blob = {
             name: asset.fileName || `camera_image_${Date.now()}.jpg`,
             type: asset.type || 'image/jpeg',
@@ -262,21 +350,21 @@ const KycScreen = () => {
             data: base64Data,
           };
 
-          // Add to UI list
-          setUploadedFiles(prev => {
-            const updated = [...prev, blob];
-            return updated.slice(0, 2); // Keep max 2 files
-          });
-          
-          // Upload to server
-          await uploadDocument(blob, 'VD');
-          setIsUploading(false);
+          if (isMounted.current) {
+            setUploadedFiles((prev) => {
+              const updated = [...prev, blob];
+              return updated.slice(0, MAX_FILES);
+            });
+            setIsUploading(false);
+          }
         }
       });
     } catch (error) {
       console.error('Camera handling error:', error);
-      Alert.alert('Error', 'Failed to process camera image');
-      setIsUploading(false);
+      if (isMounted.current) {
+        Alert.alert('Error', 'Failed to process camera image');
+        setIsUploading(false);
+      }
     }
   };
 
@@ -284,7 +372,31 @@ const KycScreen = () => {
     setUploadedFiles((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
-  const isNextEnabled =   gstNumber.trim().length >= 15;
+  // Memoized render for uploaded files
+  const renderUploadedFiles = () => {
+    return uploadedFiles.map((file, index) => (
+      <View key={index} style={styles.uploadedFileItem}>
+        <View style={styles.fileInfoContainer}>
+          <Ionicons name="document" size={20} color="#14B6AA" />
+          <Text style={styles.uploadedFileName} numberOfLines={1}>
+            {file.name || file.uri.split('/').pop()}
+          </Text>
+        </View>
+
+        {isUploading && (
+          <ActivityIndicator size="small" color="#14B6AA" style={styles.uploadStatusIndicator} />
+        )}
+
+        <TouchableOpacity
+          onPress={() => removeFile(index)}
+          disabled={isUploading}
+          style={isUploading ? styles.disabledButton : null}
+        >
+          <Ionicons name="close" size={20} color={isUploading ? '#ccc' : 'red'} />
+        </TouchableOpacity>
+      </View>
+    ));
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -293,6 +405,7 @@ const KycScreen = () => {
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
       </View>
+
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
@@ -310,7 +423,6 @@ const KycScreen = () => {
               items={items}
               setOpen={setOpen}
               setValue={setProofType}
-              setItems={setItems}
               placeholder="Select Proof Type"
               style={styles.dropdownStyle}
               dropDownContainerStyle={styles.dropdownContainerStyle}
@@ -323,52 +435,42 @@ const KycScreen = () => {
           <View style={styles.uploadContainer}>
             <Text style={styles.label}>Upload Proof</Text>
             <Text style={styles.subLabel}>
-              Upload 2 documents in pdf, jpeg or png format with maximum 4MB each
+              Upload up to {MAX_FILES} documents in pdf, jpeg or png format with maximum 4MB each
             </Text>
 
             <TouchableOpacity
-              style={[styles.fileUploadButton, (uploadedFiles.length >= 2 || isUploading) && styles.disabledButton]}
+              style={[
+                styles.fileUploadButton,
+                (uploadedFiles.length >= MAX_FILES || isUploading) && styles.disabledButton,
+              ]}
               onPress={handleFileUpload}
-              disabled={uploadedFiles.length >= 2 || isUploading}
+              disabled={uploadedFiles.length >= MAX_FILES || isUploading}
             >
               <Text style={styles.fileUploadText}>Choose File</Text>
               <Ionicons name="document-outline" size={24} color="#9F9F9F" />
             </TouchableOpacity>
 
-            <View style={{ width: '100%', alignItems: 'flex-start' }}>
+            <View style={styles.cameraButtonContainer}>
               <TouchableOpacity
-                style={[styles.cameraUploadButton, (uploadedFiles.length >= 2 || isUploading) && styles.disabledText]}
+                style={[
+                  styles.cameraUploadButton,
+                  (uploadedFiles.length >= MAX_FILES || isUploading) && styles.disabledButton,
+                ]}
                 onPress={handleOpenCamera}
-                disabled={uploadedFiles.length >= 2 || isUploading}
+                disabled={uploadedFiles.length >= MAX_FILES || isUploading}
               >
-                <Text style={[styles.cameraUploadText, (uploadedFiles.length >= 2 || isUploading) && styles.disabledText]}>
+                <Text
+                  style={[
+                    styles.cameraUploadText,
+                    (uploadedFiles.length >= MAX_FILES || isUploading) && styles.disabledText,
+                  ]}
+                >
                   <Text style={{ color: '#667085' }}>Or</Text> Open Camera
                 </Text>
               </TouchableOpacity>
             </View>
 
-            {uploadedFiles.map((file, index) => (
-              <View key={index} style={styles.uploadedFileItem}>
-                <View style={styles.fileInfoContainer}>
-                  <Ionicons name="document" size={20} color="#14B6AA" />
-                  <Text style={styles.uploadedFileName} numberOfLines={1}>
-                    {file.name || file.uri.split('/').pop()}
-                  </Text>
-                </View>
-                
-                {isUploading && (
-                  <ActivityIndicator size="small" color="#14B6AA" style={styles.uploadStatusIndicator} />
-                )}
-
-                <TouchableOpacity 
-                  onPress={() => removeFile(index)}
-                  disabled={isUploading}
-                  style={isUploading ? styles.disabledButton : null}
-                >
-                  <Ionicons name="close" size={20} color={isUploading ? "#ccc" : "red"} />
-                </TouchableOpacity>
-              </View>
-            ))}
+            {renderUploadedFiles()}
 
             <View style={styles.inputContainer}>
               <Text style={styles.label}>GST Number</Text>
@@ -380,19 +482,19 @@ const KycScreen = () => {
                 maxLength={15}
                 keyboardType="default"
               />
-              {gstNumber.length > 0 && gstNumber.length < 15 && (
+              {gstNumber.length > 0 && gstNumber.length !== 15 && (
                 <Text style={styles.errorText}>GST Number should be 15 characters</Text>
               )}
             </View>
           </View>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[
-              styles.nextButton, 
-              (!isNextEnabled || isLoading || isUploading) && styles.disabledButton
-            ]} 
+              styles.nextButton,
+              (!isFormValid || isLoading || isUploading) && styles.disabledButton,
+            ]}
             onPress={handleKycAndCompanyRegister}
-            disabled={!isNextEnabled || isLoading || isUploading}
+            disabled={!isFormValid || isLoading || isUploading}
           >
             {isLoading ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
@@ -471,6 +573,10 @@ const styles = StyleSheet.create({
     color: '#9F9F9F',
     fontFamily: 'Poppins-SemiBold',
     marginLeft: 8,
+  },
+  cameraButtonContainer: {
+    width: '100%',
+    alignItems: 'flex-start',
   },
   cameraUploadButton: {
     alignItems: 'center',

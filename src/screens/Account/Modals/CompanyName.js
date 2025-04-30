@@ -38,12 +38,30 @@ const CompanyProfile = () => {
   const [countryValue, setCountryValue] = useState(company?.country || null);
   const [stateValue, setStateValue] = useState(company?.state || null);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({}); // State for validation errors
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    console.log('running', data.data.country);
+
+    if (data.data) {
+      const filterCountry = countryList.filter((country) => country.label === data.data.country);
+      console.log('filterCountry', filterCountry);
+      setCountry(filterCountry[0]?.value);
+      setCountryValue(filterCountry[0]?.value);
+      fetchState(filterCountry[0]?.value);
+      const filterState = stateList.filter((state) => state.label === data.data.state);
+      console.log('filterState', filterState);
+      setState(filterState[0]?.value);
+      setStateValue(filterState[0]?.value);
+    }
+  }, [countryList, stateList]);
 
   // Fetch country list on component mount
   useEffect(() => {
     fetchCountry();
   }, []);
+
+  console.log(data);
 
   // Fetch states when country is selected
   useEffect(() => {

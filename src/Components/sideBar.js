@@ -40,10 +40,12 @@ const Sidebar = () => {
           console.log(docsResponse.data.data);
           setDocs(docsResponse.data.data);
           setName(response.data.data.full_name);
-          
+
           // Fetch company details if roleId is 2
           if (storedRoleId === '2') {
-            const companyResponse = await axios.get(`${API_ENDPOINTS.COMPANY_DETAILS}?user_id=${storedUserId}`);
+            const companyResponse = await axios.get(
+              `${API_ENDPOINTS.COMPANY_DETAILS}?user_id=${storedUserId}`
+            );
             if (companyResponse.data && companyResponse.data.data) {
               setCompanyName(companyResponse.data.data.company_name || '');
             }
@@ -70,10 +72,15 @@ const Sidebar = () => {
             name: 'Recommended jobs',
             icon: require('../../assets/image/recommend.png'),
             route: 'recommendedJobsList',
-            type: 'recommended'
+            type: 'recommended',
           },
           { id: 3, name: 'Saved jobs', icon: require('../../assets/image/saveJob.png'), route: '' },
-          { id: 4, name: 'Settings', icon: require('../../assets/image/setting.png'), route: 'setting' },
+          {
+            id: 4,
+            name: 'Settings',
+            icon: require('../../assets/image/setting.png'),
+            route: 'setting',
+          },
           { id: 5, name: 'About Us', icon: require('../../assets/image/AboutUs.png'), route: '' },
           {
             id: 6,
@@ -101,11 +108,16 @@ const Sidebar = () => {
             icon: require('../../assets/image/schedule.png'),
             route: '',
           },
-          { id: 4, name: 'Settings', icon: require('../../assets/image/setting.png'), route: 'setting' },
+          {
+            id: 4,
+            name: 'Settings',
+            icon: require('../../assets/image/setting.png'),
+            route: 'setting',
+          },
         ];
 
-  const handleNavigation = (route , type) => {
-    navigation.navigate(route , { type: type });
+  const handleNavigation = (route, type) => {
+    navigation.navigate(route, { type: type });
     setIsOpen(false);
   };
 
@@ -114,12 +126,14 @@ const Sidebar = () => {
     // TODO: Implement feedback submission logic
   };
 
-  if (roleId === null) {
-    return null; // Or return a loading indicator if you have one
-  }
-
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.item} onPress={() => {handleNavigation(item.route , item.type); dispatch(toggleSidebar())}}>
+    <TouchableOpacity
+      style={styles.item}
+      onPress={() => {
+        handleNavigation(item.route, item.type);
+        dispatch(toggleSidebar());
+      }}
+    >
       <Image source={item.icon} style={styles.itemIcon} />
       <Text style={styles.itemText}>{item.name}</Text>
     </TouchableOpacity>
@@ -130,7 +144,14 @@ const Sidebar = () => {
       <View style={styles.sidebar}>
         {/* Profile Section */}
         <View style={styles.profileSection}>
-          { docs ? <Image source={{ uri: roleId == 1 ? docs.pp_url : docs.comp_url }} style={styles.profileImage} /> : <ProfileImageFallback fullname={name} size={45} fontSize={20} />}
+          {docs ? (
+            <Image
+              source={{ uri: roleId == 1 ? docs.pp_url : docs.comp_url }}
+              style={styles.profileImage}
+            />
+          ) : (
+            <ProfileImageFallback fullname={name} size={45} fontSize={20} />
+          )}
           <View style={styles.profileDetails}>
             <View>
               <Text style={styles.profileName}>{name}</Text>
@@ -160,7 +181,7 @@ const Sidebar = () => {
               try {
                 await AsyncStorage.removeItem('userId');
                 await AsyncStorage.removeItem('lastTab');
-                dispatch(toggleSidebar())
+                dispatch(toggleSidebar());
                 navigation.navigate('Login');
               } catch (error) {
                 console.error('Error during logout:', error);
@@ -210,7 +231,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 50,
-    marginRight: 5
+    marginRight: 5,
   },
   sidebar: {
     width: '100%',
@@ -222,7 +243,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 15,
-    gap: 10
+    gap: 10,
   },
   icon: {
     width: 1,
@@ -279,7 +300,7 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     marginRight: 20,
-    objectFit: 'contain'
+    objectFit: 'contain',
   },
   itemText: {
     fontSize: 14,
@@ -323,4 +344,3 @@ const styles = StyleSheet.create({
 });
 
 export default Sidebar;
-

@@ -17,7 +17,6 @@ import axios from 'axios'; // Added missing axios import
 import { API_ENDPOINTS } from '../../api/apiConfig';
 
 const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
-
   // State variables
   const [userId, setUserId] = useState(null);
   const [userData, setUserData] = useState({});
@@ -29,9 +28,6 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
   const [focusedInput, setFocusedInput] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isResume, setIsResume] = useState(false);
-
-
-
 
   // Fetch user data
   const fetchUserId = async () => {
@@ -49,10 +45,8 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
     if (!userId) return;
     try {
       const response = await axios.get(`${API_ENDPOINTS.DOCS}?user_id=${userId}`);
-      if(
-        response.data.data.resume_file_name !== ''
-      ){
-        setIsResume(true)
+      if (response.data.data.resume_file_name !== '') {
+        setIsResume(true);
       }
     } catch (error) {
       console.error('Error fetching docs:', error);
@@ -61,19 +55,14 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
 
   const fetchUserData = async () => {
     if (!userId) return;
-    
+
     setIsLoading(true);
     try {
       // Fetch user introduction data
-      const introResponse = await axios.get(
-        `${API_ENDPOINTS.INTRODUCTION}?user_id=${userId}`
-      );
-  
-      
+      const introResponse = await axios.get(`${API_ENDPOINTS.INTRODUCTION}?user_id=${userId}`);
+
       // Fetch personal details
-      const personalResponse = await axios.get(
-        `${API_ENDPOINTS.BASIC_DETAILS}?user_id=${userId}`
-      );
+      const personalResponse = await axios.get(`${API_ENDPOINTS.BASIC_DETAILS}?user_id=${userId}`);
 
       const introData = introResponse.data.data || {};
       const personalData = personalResponse.data.data || {};
@@ -81,13 +70,11 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
       // Merge the data
       const combinedData = { ...introData, ...personalData };
       setUserData(combinedData);
-      
-   
+
       // Pre-fill form with user data if available
       if (combinedData.full_name) setName(combinedData.full_name);
       if (combinedData.email) setEmail(combinedData.email);
       if (combinedData.mobile_number) setMobile(combinedData.mobile_number);
-      
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
@@ -125,37 +112,31 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
       setResume(res[0]);
     } catch (err) {
       if (DocumentPicker.isCancel(err)) {
- 
       } else {
         console.error('Error picking document:', err);
       }
     }
   };
 
- 
-
   // Form submission
   const handleSubmit = async () => {
     try {
-       setIsLoading (true);
-       const response = await axios.post(API_ENDPOINTS.JOB_APPLY , {
-        user_id : userId,
-        job_id : job.job_id,
-       })
-      console.log(response.data)
-       if(response.data.status === 'success') {
-      setShowApplicationForm(false);
-      onClose();
-      onSuccess();
-       }
-       setIsLoading(false);
-      
-   
-      
+      setIsLoading(true);
+      const response = await axios.post(API_ENDPOINTS.JOB_APPLY, {
+        user_id: userId,
+        job_id: job.job_id,
+      });
+      console.log(response.data);
+      if (response.data.status === 'success') {
+        setShowApplicationForm(false);
+        onClose();
+        onSuccess();
+      }
+      setIsLoading(false);
     } catch (error) {
       console.error('Error submitting application:', error);
       alert('Failed to submit application. Please try again.');
-    }finally {
+    } finally {
       setIsLoading(false);
     }
   };
@@ -165,53 +146,42 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
     return (
       <View>
         <View>
-          {!isResume &&  <View style={styles.AlertContainer}>
-             <Ionicons name="alert" size={24} color={Colors.primary} />
-             <Text style={styles.AlertText}>Resume not uploaded</Text>
-           </View>}
+          {!isResume && (
+            <View style={styles.AlertContainer}>
+              <Ionicons name="alert" size={24} color={Colors.primary} />
+              <Text style={styles.AlertText}>Resume not uploaded</Text>
+            </View>
+          )}
         </View>
         <TouchableOpacity style={styles.fileInput} onPress={pickDocument}>
           <Ionicons name="document-attach-outline" size={24} color={Colors.primary} />
-          <Text style={styles.fileInputText}>
-            {resume ? resume.name : 'Upload Resume'}
-          </Text>
+          <Text style={styles.fileInputText}>{resume ? resume.name : 'Upload Resume'}</Text>
         </TouchableOpacity>
       </View>
     );
   };
 
+  const shareJob = async () => {
+    const jobId = job.job_id;
+    const deepLink = `https://canwinn.abacasys.com/job/${jobId}`;
 
-const shareJob = async () => {
-  const jobId = job.job_id;
-  const deepLink = `https://canwinn.abacasys.com/job/${jobId}`;
-
-  try {
-    await Share.share({
-      message: `Check out this job opportunity: ${deepLink}`,
-    });
-  } catch (error) {
-    console.error('Error sharing job:', error);
-  }
-}
+    try {
+      await Share.share({
+        message: `Check out this job opportunity: ${deepLink}`,
+      });
+    } catch (error) {
+      console.error('Error sharing job:', error);
+    }
+  };
 
   // Parse qualifications
-const qualifications = job?.job_requirments && job.job_requirments !== "" 
-  ? job.job_requirments.split(',') 
-  : [];
+  const qualifications =
+    job?.job_requirments && job.job_requirments !== '' ? job.job_requirments.split(',') : [];
 
-
- const skills = job?.job_skills && job.job_skills !== "" 
-  ? job.job_skills.split(',') 
-  : []; 
-
+  const skills = job?.job_skills && job.job_skills !== '' ? job.job_skills.split(',') : [];
 
   return (
-    <Modal 
-      animationType="slide" 
-      transparent={true} 
-      visible={visible} 
-      onRequestClose={onClose}
-    >
+    <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         {!showApplicationForm && (
           <View style={styles.ButtonContainer}>
@@ -225,7 +195,10 @@ const qualifications = job?.job_requirments && job.job_requirments !== ""
               <TouchableOpacity style={{ backgroundColor: 'white', borderRadius: 50, padding: 8 }}>
                 <Ionicons name="bookmark-outline" size={24} color={Colors.primary} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={shareJob} style={{ backgroundColor: 'white', borderRadius: 50, padding: 8 }}>
+              <TouchableOpacity
+                onPress={shareJob}
+                style={{ backgroundColor: 'white', borderRadius: 50, padding: 8 }}
+              >
                 <Ionicons name="arrow-redo-circle-outline" size={26} color="black" />
               </TouchableOpacity>
             </View>
@@ -243,9 +216,7 @@ const qualifications = job?.job_requirments && job.job_requirments !== ""
                 marginTop: 5,
               }}
             >
-              <View
-                style={{ width: 150, height: 5, backgroundColor: 'black', borderRadius: 10 }}
-              />
+              <View style={{ width: 150, height: 5, backgroundColor: 'black', borderRadius: 10 }} />
             </View>
 
             <View style={styles.jobDetailHeader}>
@@ -255,11 +226,17 @@ const qualifications = job?.job_requirments && job.job_requirments !== ""
               />
               <View style={styles.jobTitleContainer}>
                 <Text style={styles.jobCompany}>{job?.company_name || 'Amazon'}</Text>
-                <Text style={styles.jobPosition}>{job?.job_title || 'Senior Software Engineer'}</Text>
+                <Text style={styles.jobPosition}>
+                  {job?.job_title || 'Senior Software Engineer'}
+                </Text>
               </View>
             </View>
 
-            <ScrollView style={styles.badgeContainer} showsVerticalScrollIndicator={false} horizontal={true}>
+            <ScrollView
+              style={styles.badgeContainer}
+              showsVerticalScrollIndicator={false}
+              horizontal={true}
+            >
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{job?.employment_type || 'Full Time'}</Text>
               </View>
@@ -268,16 +245,16 @@ const qualifications = job?.job_requirments && job.job_requirments !== ""
               </View>
 
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>{job?.min_experience}-{job?.max_experience} Years</Text>
+                <Text style={styles.badgeText}>
+                  {job?.min_experience}-{job?.max_experience} Years
+                </Text>
               </View>
 
-               {
-                 job?.education.split(',') ?.map((item, index) => (
-                  <View key={index} style={styles.badge}>
-                    <Text style={styles.badgeText}>{item.trim()}</Text>
-                  </View>
-                 ))
-               }
+              {job?.education.split(',')?.map((item, index) => (
+                <View key={index} style={styles.badge}>
+                  <Text style={styles.badgeText}>{item.trim()}</Text>
+                </View>
+              ))}
             </ScrollView>
 
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -305,16 +282,19 @@ const qualifications = job?.job_requirments && job.job_requirments !== ""
                 </View>
               </View>
 
-               <Text style={styles.sectionTitle}>Skills Required</Text>
-              <View style={[styles.requirementsList , {flexDirection: 'row'}]}>
-              {skills.length > 0 ?  skills.map((item, index) => (
-                  <View key={index} style={styles.skillChip}>
-                    <Ionicons name="checkmark" size={10} color="gray" />
-                    <Text style={styles.skillText}>{item.trim()}</Text>
-                  </View>
-                )) : <Text style={styles.requirementText}>No Skills</Text>}
+              <Text style={styles.sectionTitle}>Skills Required</Text>
+              <View style={[styles.requirementsList, { flexDirection: 'row' }]}>
+                {skills.length > 0 ? (
+                  skills.map((item, index) => (
+                    <View key={index} style={styles.skillChip}>
+                      <Ionicons name="checkmark" size={10} color="gray" />
+                      <Text style={styles.skillText}>{item.trim()}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text style={styles.requirementText}>No Skills</Text>
+                )}
               </View>
-
 
               <Text style={styles.sectionTitle}>Job Description</Text>
               <Text style={styles.descriptionText}>
@@ -322,21 +302,21 @@ const qualifications = job?.job_requirments && job.job_requirments !== ""
               </Text>
 
               <Text style={styles.sectionTitle}>About Company</Text>
-              <Text style={styles.descriptionText}>
-                {job?.about || 'No description available'}
-              </Text>
+              <Text style={styles.descriptionText}>{job?.about || 'No description available'}</Text>
 
               <Text style={styles.sectionTitle}>Qualification</Text>
               <View style={styles.requirementsList}>
-              {qualifications.length > 0 ?  qualifications.map((item, index) => (
-                  <View key={index} style={styles.requirementItem}>
-                    <View style={styles.bulletPoint} />
-                    <Text style={styles.requirementText}>{item.trim()}</Text>
-                  </View>
-                )) : <Text style={styles.requirementText}>No Qualifications</Text>}
+                {qualifications.length > 0 ? (
+                  qualifications.map((item, index) => (
+                    <View key={index} style={styles.requirementItem}>
+                      <View style={styles.bulletPoint} />
+                      <Text style={styles.requirementText}>{item.trim()}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text style={styles.requirementText}>No Qualifications</Text>
+                )}
               </View>
-
-
 
               <TouchableOpacity
                 style={styles.applyButton}
@@ -381,19 +361,11 @@ const qualifications = job?.job_requirments && job.job_requirments !== ""
 
               <View>
                 <FileInput />
-                <View
-                  style={[styles.inputContainer]}
-                >
-                  <Ionicons
-                    name="person-outline"
-                    size={24}
-                    color="#D5D9DF"
-                  />
+                <View style={[styles.inputContainer]}>
+                  <Ionicons name="person-outline" size={24} color="#D5D9DF" />
                   <Text>{name}</Text>
                 </View>
-                <View
-                  style={[styles.inputContainer]}
-                >
+                <View style={[styles.inputContainer]}>
                   <Ionicons
                     name="mail-outline"
                     size={24}
@@ -419,7 +391,10 @@ const qualifications = job?.job_requirments && job.job_requirments !== ""
                   style={styles.submitButton}
                   onPress={handleSubmit}
                 >
-                  <Text style={styles.applyButtonText}> {isLoading ? 'Applying...' : 'Apply Job'} </Text>
+                  <Text style={styles.applyButtonText}>
+                    {' '}
+                    {isLoading ? 'Applying...' : 'Apply Job'}{' '}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -509,7 +484,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Poppins-Medium',
   },
-  AlertText:{
+  AlertText: {
     fontFamily: 'Poppins-Regular',
     marginTop: 5,
     color: '#424242',
@@ -526,9 +501,8 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 10,
     marginBottom: 0,
-
   },
-   skillChip: {
+  skillChip: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -538,7 +512,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 5,
     backgroundColor: '#DFFAF6',
-
   },
 
   skillText: {

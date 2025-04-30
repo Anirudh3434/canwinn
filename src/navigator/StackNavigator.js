@@ -90,11 +90,11 @@ const StackNavigator = () => {
   const [initialJobId, setInitialJobId] = useState(null);
 
   // ✅ Function to handle the deep link navigation
- const handleDeepLink = (url) => {
+  const handleDeepLink = (url) => {
     if (!url) return;
-    
+
     console.log('🔹 Deep link URL:', url);
-    
+
     // Handle LinkedIn callback
     const linkedinMatch = url.match(/user=([^&]*)/);
     if (linkedinMatch && navigationRef.isReady()) {
@@ -105,13 +105,13 @@ const StackNavigator = () => {
       navigationRef.navigate('LinkedinVerify', { userData });
       return;
     }
-    
+
     // Handle job deep links
     const jobMatch = url.match(/canwinn\.abacasys\.com\/job\/(\d+)/);
     if (jobMatch && jobMatch[1]) {
       const jobId = jobMatch[1];
       console.log('✅ Extracted Job ID:', jobId);
-      
+
       if (navigationRef.isReady()) {
         // Navigate directly to JobDetail screen with the job ID
         navigationRef.navigate('JobDetail', { id: jobId, fromDeepLink: true });
@@ -122,13 +122,13 @@ const StackNavigator = () => {
     }
   };
 
-    useEffect(() => {
+  useEffect(() => {
     if (navigationRef.isReady() && initialJobId) {
       navigationRef.navigate('JobDetail', { id: initialJobId, fromDeepLink: true });
       setInitialJobId(null); // Clear after use
     }
   }, [initialJobId, navigationRef.isReady]);
- 
+
   useEffect(() => {
     // Handle splash screen
     setTimeout(() => {
@@ -154,8 +154,6 @@ const StackNavigator = () => {
       deepLinkSubscription.remove();
     };
   }, []);
-
-
 
   return (
     <NavigationContainer ref={navigationRef}>
@@ -195,7 +193,11 @@ const StackNavigator = () => {
           options={{ headerShown: false }}
         />
 
-        <Stack.Screen name='recommendedJobsList' component={recommendedJobsList} options={{ headerShown: false }} />
+        <Stack.Screen
+          name="recommendedJobsList"
+          component={recommendedJobsList}
+          options={{ headerShown: false }}
+        />
 
         <Stack.Screen name="AddJob" component={AddJob} options={{ headerShown: false }} />
 
@@ -291,7 +293,11 @@ const StackNavigator = () => {
           options={{ headerShown: false }}
         />
 
-        <Stack.Screen name="Manage Job Listing" component={ManageJob} options={{ headerShown: false }} />
+        <Stack.Screen
+          name="Manage Job Listing"
+          component={ManageJob}
+          options={{ headerShown: false }}
+        />
 
         <Stack.Screen name="Language" component={Language} options={{ headerShown: false }} />
 
@@ -342,20 +348,44 @@ const StackNavigator = () => {
         <Stack.Screen name="PdfViewer" component={PdfViewer} options={{ headerShown: false }} />
 
         <Stack.Screen name="VideoViewer" component={VideoPlayer} options={{ headerShown: false }} />
-        
+
         <Stack.Screen name="setting" component={SettingsScreen} options={{ headerShown: false }} />
 
-        <Stack.Screen name="Allowance" component={AddWorkplaceHighlights} options={{ headerShown: false }} />
+        <Stack.Screen
+          name="Allowance"
+          component={AddWorkplaceHighlights}
+          options={{ headerShown: false }}
+        />
 
-        <Stack.Screen name="VisiblityOptions" component={VisiblityOptions} options={{ headerShown: false }} />
+        <Stack.Screen
+          name="VisiblityOptions"
+          component={VisiblityOptions}
+          options={{ headerShown: false }}
+        />
 
-        <Stack.Screen name="ProfileVisitVisibility" component={ProfileVisitVisibility} options={{ headerShown: false }} />
+        <Stack.Screen
+          name="ProfileVisitVisibility"
+          component={ProfileVisitVisibility}
+          options={{ headerShown: false }}
+        />
 
-        <Stack.Screen name="Visiblity" component={ProfileViewingSettings} options={{ headerShown: false }} />
+        <Stack.Screen
+          name="Visiblity"
+          component={ProfileViewingSettings}
+          options={{ headerShown: false }}
+        />
 
-        <Stack.Screen name="DiscoverByEmail" component={DiscoverByEmail} options={{ headerShown: false }} />
+        <Stack.Screen
+          name="DiscoverByEmail"
+          component={DiscoverByEmail}
+          options={{ headerShown: false }}
+        />
 
-        <Stack.Screen name="DiscoverByPhone" component={DiscoverByPhone} options={{ headerShown: false }} />
+        <Stack.Screen
+          name="DiscoverByPhone"
+          component={DiscoverByPhone}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

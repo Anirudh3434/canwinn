@@ -9,7 +9,7 @@ import {
   StatusBar,
   FlatList,
   ScrollView,
-  BackHandler
+  BackHandler,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -23,18 +23,24 @@ import JobSuccess from '../../Components/Popups/JobSuccess';
 const SkeletonJobCard = () => (
   <View style={styles.card}>
     <SkeletonPlaceholder speed={800} highlightColor="#F2F8FC" flexDirection="column">
-      <SkeletonPlaceholder.Item width='100%' height={150} borderRadius={10} flexDirection='row' justifyContent='space-between'>
-        <SkeletonPlaceholder.Item width='70%' height={100} borderRadius={10}>
-          <SkeletonPlaceholder.Item width='80%' height={40} borderRadius={10} />
-          <SkeletonPlaceholder.Item width='25%' height={20} borderRadius={8} marginTop={5}/>
-          <SkeletonPlaceholder.Item width='60%' height={20} borderRadius={8} marginTop={10}/>
-          <SkeletonPlaceholder.Item width='60%' height={20} borderRadius={8} marginTop={5}/>
-          <SkeletonPlaceholder.Item width='60%' height={20} borderRadius={8} marginTop={5}/>
+      <SkeletonPlaceholder.Item
+        width="100%"
+        height={150}
+        borderRadius={10}
+        flexDirection="row"
+        justifyContent="space-between"
+      >
+        <SkeletonPlaceholder.Item width="70%" height={100} borderRadius={10}>
+          <SkeletonPlaceholder.Item width="80%" height={40} borderRadius={10} />
+          <SkeletonPlaceholder.Item width="25%" height={20} borderRadius={8} marginTop={5} />
+          <SkeletonPlaceholder.Item width="60%" height={20} borderRadius={8} marginTop={10} />
+          <SkeletonPlaceholder.Item width="60%" height={20} borderRadius={8} marginTop={5} />
+          <SkeletonPlaceholder.Item width="60%" height={20} borderRadius={8} marginTop={5} />
         </SkeletonPlaceholder.Item>
-        <SkeletonPlaceholder.Item width='25%' height={100} borderRadius={10}>
-          <SkeletonPlaceholder.Item width={70} height={70} borderRadius={50}/>
-          <SkeletonPlaceholder.Item width={70} height={20} borderRadius={8} marginTop={10}/>
-          <SkeletonPlaceholder.Item width={70} height={20} borderRadius={8} marginTop={10}/>
+        <SkeletonPlaceholder.Item width="25%" height={100} borderRadius={10}>
+          <SkeletonPlaceholder.Item width={70} height={70} borderRadius={50} />
+          <SkeletonPlaceholder.Item width={70} height={20} borderRadius={8} marginTop={10} />
+          <SkeletonPlaceholder.Item width={70} height={20} borderRadius={8} marginTop={10} />
         </SkeletonPlaceholder.Item>
       </SkeletonPlaceholder.Item>
     </SkeletonPlaceholder>
@@ -46,24 +52,19 @@ function JobList() {
   const route = useRoute();
   const { title, location } = route.params || {};
 
-
   const backAction = () => {
-
- if (navigation.isFocused()) {
-    navigation.navigate('Search'); 
-    return true;
-  }
-  }
+    if (navigation.isFocused()) {
+      navigation.navigate('Search');
+      return true;
+    }
+  };
 
   useEffect(() => {
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
 
     return () => backHandler.remove();
   }, [navigation]);
-  
+
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
   const [successPop, setSuccessPop] = useState(false);
@@ -71,21 +72,25 @@ function JobList() {
   const [jobs, setJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFilterTab, setSelectedFilterTab] = useState(0);
-  
+
   // Memoize filtered jobs to avoid unnecessary recalculations
   const filteredJobs = useMemo(() => {
     if (Object.keys(filtersData).length === 0) {
       return jobs;
     }
-    
+
     return applyFilters(jobs, filtersData);
   }, [jobs, filtersData]);
+
+  console.log('Filtered Jobs:', filteredJobs);
 
   const fetchSearchJobs = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `https://devcrm20.abacasys.com/ords/canwinn/mobile_api/filtering?search_input=${encodeURIComponent(title || '')}&job_location=${encodeURIComponent(location || '')}`
+        `https://devcrm20.abacasys.com/ords/canwinn/mobile_api/filtering?search_input=${encodeURIComponent(
+          title || ''
+        )}&job_location=${encodeURIComponent(location || '')}`
       );
       if (response.data.status === 'success') {
         setJobs(response.data.data);
@@ -100,10 +105,10 @@ function JobList() {
       setIsLoading(false);
     }
   }, [title, location]);
-  
+
   useEffect(() => {
     fetchSearchJobs();
-    
+
     // Enable hardware back button handling
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       if (modalVisible) {
@@ -113,32 +118,33 @@ function JobList() {
         setModalVisible(false);
       }
     });
-    
+
     return unsubscribe;
   }, [navigation, fetchSearchJobs]);
 
   // This function applies all selected filters to the jobs
   const applyFilters = (jobsToFilter, filters) => {
     let results = [...jobsToFilter];
-    
+
     // Process each filter category
     Object.entries(filters).forEach(([category, selectedOptions]) => {
       if (selectedOptions && selectedOptions.length > 0) {
-        switch(category) {
+        switch (category) {
           case 'Work Mode':
-            results = results.filter(job => 
-              selectedOptions.some(option => 
-                job.workplace_type && job.workplace_type.toLowerCase() === option.toLowerCase()
+            results = results.filter((job) =>
+              selectedOptions.some(
+                (option) =>
+                  job.workplace_type && job.workplace_type.toLowerCase() === option.toLowerCase()
               )
             );
             break;
-          
+
           case 'Experience':
-            results = results.filter(job => {
+            results = results.filter((job) => {
               const minExp = parseInt(job.min_experience) || 0;
               const maxExp = parseInt(job.max_experience) || 0;
-              
-              return selectedOptions.some(range => {
+
+              return selectedOptions.some((range) => {
                 if (range === 'Fresher') {
                   return minExp === 0;
                 } else if (range === '1-2 years') {
@@ -152,13 +158,13 @@ function JobList() {
               });
             });
             break;
-          
+
           case 'Salary':
-            results = results.filter(job => {
+            results = results.filter((job) => {
               const minSalary = parseFloat(job.min_salary) || 0;
               const maxSalary = parseFloat(job.max_salary) || 0;
-              
-              return selectedOptions.some(range => {
+
+              return selectedOptions.some((range) => {
                 if (range === '0-3 LPA') {
                   return minSalary >= 0 && maxSalary <= 3;
                 } else if (range === '3-6 LPA') {
@@ -172,48 +178,49 @@ function JobList() {
               });
             });
             break;
-          
+
           case 'Industries':
-            results = results.filter(job => 
-              selectedOptions.some(industry => 
-                job.industry && job.industry.toString() === industry
+            results = results.filter((job) =>
+              selectedOptions.some(
+                (industry) => job.industry && job.industry.toString() === industry
               )
             );
             break;
-          
+
           case 'Work Type':
-            results = results.filter(job => 
-              selectedOptions.some(type => 
-                job.employment_type && job.employment_type.toLowerCase() === type.toLowerCase()
+            results = results.filter((job) =>
+              selectedOptions.some(
+                (type) =>
+                  job.employment_type && job.employment_type.toLowerCase() === type.toLowerCase()
               )
             );
             break;
-          
+
           case 'Department':
-            results = results.filter(job => 
-              selectedOptions.some(department => 
-                job.department && job.department.includes(department)
+            results = results.filter((job) =>
+              selectedOptions.some(
+                (department) => job.department && job.department.includes(department)
               )
             );
             break;
-          
+
           case 'Company Size':
             // No company size in the data, could be added later
             break;
-          
+
           case 'Role':
-            results = results.filter(job => 
-              selectedOptions.some(role => 
-                job.job_title && job.job_title.toLowerCase().includes(role.toLowerCase())
+            results = results.filter((job) =>
+              selectedOptions.some(
+                (role) => job.job_title && job.job_title.toLowerCase().includes(role.toLowerCase())
               )
             );
             break;
-          
+
           case 'Stipend':
-            results = results.filter(job => {
+            results = results.filter((job) => {
               const minSalary = parseFloat(job.min_salary) || 0;
-              
-              return selectedOptions.some(range => {
+
+              return selectedOptions.some((range) => {
                 if (range === 'Unpaid') {
                   return minSalary === 0;
                 } else if (range === '0-5K per month') {
@@ -227,28 +234,31 @@ function JobList() {
               });
             });
             break;
-          
+
           case 'Education':
-            results = results.filter(job => 
-              selectedOptions.some(education => 
-                job.education && job.education.split(',').some(level => 
-                  level.trim().toLowerCase() === education.toLowerCase()
-                )
+            results = results.filter((job) =>
+              selectedOptions.some(
+                (education) =>
+                  job.education &&
+                  job.education
+                    .split(',')
+                    .some((level) => level.trim().toLowerCase() === education.toLowerCase())
               )
             );
             break;
-          
+
           case 'Posted By':
-            results = results.filter(job => 
-              selectedOptions.some(poster => 
-                job.company_type && job.company_type.toLowerCase().includes(poster.toLowerCase())
+            results = results.filter((job) =>
+              selectedOptions.some(
+                (poster) =>
+                  job.company_type && job.company_type.toLowerCase().includes(poster.toLowerCase())
               )
             );
             break;
         }
       }
     });
-    
+
     return results;
   };
 
@@ -266,87 +276,93 @@ function JobList() {
     setModalVisible(false);
   }, []);
 
-  const openFilterScreen = useCallback((tabIndex) => {
-    setSelectedFilterTab(tabIndex);
-    // Use proper navigation instead of conditional rendering
-    navigation.navigate('FilterScreen', {
-      initialFilters: filtersData,
-      onApplyFilters: handleFilterData,
-      selectedTab: tabIndex
-    });
-  }, [navigation, filtersData]);
+  const openFilterScreen = useCallback(
+    (tabIndex) => {
+      setSelectedFilterTab(tabIndex);
+      // Use proper navigation instead of conditional rendering
+      navigation.navigate('FilterScreen', {
+        initialFilters: filtersData,
+        onApplyFilters: handleFilterData,
+        selectedTab: tabIndex,
+      });
+    },
+    [navigation, filtersData]
+  );
 
   const handleFilterData = useCallback((data) => {
     setFiltersData(data);
   }, []);
 
-  const renderJobCard = useCallback(({ item }) => (
-    <View style={styles.card}>
-      <View style={styles.jobDetails}>
-        <TouchableOpacity
-          onPress={() => openJobDetail(item)}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.cardTitle}>{item.job_title}</Text>
-          <Text style={styles.cardText}>{item.company_name}</Text>
-          <View style={styles.detailRow}>
-            <Ionicons name="location-outline" size={16} color="gray" />
-            <Text style={styles.detailText}>{item.job_location}</Text>
+  const renderJobCard = useCallback(
+    ({ item }) => (
+      <View style={styles.card}>
+        <View style={styles.jobDetails}>
+          <TouchableOpacity onPress={() => openJobDetail(item)} activeOpacity={0.7}>
+            <Text style={styles.cardTitle}>{item.job_title}</Text>
+            <Text style={styles.cardText}>{item.company_name}</Text>
+            <View style={styles.detailRow}>
+              <Ionicons name="location-outline" size={16} color="gray" />
+              <Text style={styles.detailText}>{item.job_location}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Ionicons name="briefcase-outline" size={16} color="gray" />
+              <Text style={styles.detailText}>
+                {item.min_experience}
+                {item.max_experience ? `-${item.max_experience}` : ''} years
+              </Text>
+            </View>
+          </TouchableOpacity>
+          <View style={[styles.detailRow, { marginTop: 10 }]}>
+            <ScrollView
+              style={styles.skillContainer}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+            >
+              {item.job_skills &&
+                item.job_skills.split(',').map((skill, index) => (
+                  <View key={index} style={styles.skillChip}>
+                    <Ionicons name="checkmark" size={10} color="gray" />
+                    <Text style={styles.skillText}>{skill.trim()}</Text>
+                  </View>
+                ))}
+            </ScrollView>
           </View>
-          <View style={styles.detailRow}>
-            <Ionicons name="briefcase-outline" size={16} color="gray" />
-            <Text style={styles.detailText}>
-              {item.min_experience}{item.max_experience ? `-${item.max_experience}` : ''} years
-            </Text>
+        </View>
+        <View style={styles.ratingContainer}>
+          <Image source={{ uri: item.company_logo }} style={styles.jobImage} resizeMode="contain" />
+          <View style={styles.ratingInfo}>
+            <View style={styles.ratingRow}>
+              <Ionicons name="star" size={18} color="#FFC107" />
+              <Text style={styles.rating}>{item.rating || '3.5'}</Text>
+            </View>
+            <Text style={styles.reviews}>({item.reviews || '5'} reviews)</Text>
           </View>
-        </TouchableOpacity>
-        <View style={[styles.detailRow, { marginTop: 10 }]}>
-          <ScrollView style={styles.skillContainer} horizontal showsHorizontalScrollIndicator={false}>
-            {item.job_skills && item.job_skills.split(',').map((skill, index) => (
-              <View key={index} style={styles.skillChip}>
-                <Ionicons name="checkmark" size={10} color="gray" />
-                <Text style={styles.skillText}>{skill.trim()}</Text>
-              </View>
-            ))}
-          </ScrollView>
         </View>
       </View>
-      <View style={styles.ratingContainer}>
-        <Image
-          source={require('../../../assets/image/a1.png')}
-          style={styles.jobImage}
-          resizeMode="contain"
-        />
-        <View style={styles.ratingInfo}>
-          <View style={styles.ratingRow}>
-            <Ionicons name="star" size={18} color="#FFC107" />
-            <Text style={styles.rating}>{item.rating || '3.5'}</Text>
-          </View>
-          <Text style={styles.reviews}>({item.reviews || '5'} reviews)</Text>
-        </View>
-      </View>
-    </View>
-  ), [openJobDetail]);
+    ),
+    [openJobDetail]
+  );
 
-  const renderFilterBadge = useCallback((label, tabIndex) => {
-    // Check if this filter category exists in the filtersData
-    const isActive = Object.keys(filtersData).includes(label);
-    const count = isActive ? filtersData[label].length : 0;
-    
-    return (
-      <TouchableOpacity
-        onPress={() => openFilterScreen(tabIndex)}
-        style={[
-          styles.badgeOptions,
-          { backgroundColor: isActive ? '#DFFAF6' : 'transparent' }
-        ]}
-      >
-        <Text style={styles.filterText}>
-          {label}{count > 0 ? ` (${count})` : ''}
-        </Text>
-      </TouchableOpacity>
-    );
-  }, [filtersData, openFilterScreen]);
+  const renderFilterBadge = useCallback(
+    (label, tabIndex) => {
+      // Check if this filter category exists in the filtersData
+      const isActive = Object.keys(filtersData).includes(label);
+      const count = isActive ? filtersData[label].length : 0;
+
+      return (
+        <TouchableOpacity
+          onPress={() => openFilterScreen(tabIndex)}
+          style={[styles.badgeOptions, { backgroundColor: isActive ? '#DFFAF6' : 'transparent' }]}
+        >
+          <Text style={styles.filterText}>
+            {label}
+            {count > 0 ? ` (${count})` : ''}
+          </Text>
+        </TouchableOpacity>
+      );
+    },
+    [filtersData, openFilterScreen]
+  );
 
   const filterOptions = [
     { label: 'Work Mode', index: 0 },
@@ -362,20 +378,20 @@ function JobList() {
     { label: 'Posted By', index: 10 },
   ];
 
-  const renderEmptyList = useCallback(() => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="search-outline" size={50} color="#757575" />
-      <Text style={styles.noJobsText}>No Jobs Found</Text>
-      {Object.keys(filtersData).length > 0 && (
-        <TouchableOpacity 
-          style={styles.clearFiltersButton}
-          onPress={() => setFiltersData({})}
-        >
-          <Text style={styles.clearFiltersText}>Clear Filters</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  ), [filtersData]);
+  const renderEmptyList = useCallback(
+    () => (
+      <View style={styles.emptyContainer}>
+        <Ionicons name="search-outline" size={50} color="#757575" />
+        <Text style={styles.noJobsText}>No Jobs Found</Text>
+        {Object.keys(filtersData).length > 0 && (
+          <TouchableOpacity style={styles.clearFiltersButton} onPress={() => setFiltersData({})}>
+            <Text style={styles.clearFiltersText}>Clear Filters</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    ),
+    [filtersData]
+  );
 
   return (
     <SafeAreaView style={[style.area, { backgroundColor: Colors.bg, flex: 1 }]}>
@@ -383,11 +399,9 @@ function JobList() {
         barStyle={modalVisible ? 'light-content' : 'dark-content'}
         backgroundColor={modalVisible ? 'rgba(0, 0, 0, 0.5)' : 'white'}
       />
-      
-      {successPop && (
-        <JobSuccess setSuccessPop={setSuccessPop} />
-      )}
-      
+
+      {successPop && <JobSuccess setSuccessPop={setSuccessPop} />}
+
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.navigate('Search')}
@@ -398,8 +412,11 @@ function JobList() {
         <View style={styles.headerText}>
           <Text style={styles.resultsText}>Results</Text>
           <Text style={styles.jobsFoundText}>
-            {isLoading ? 'Searching jobs...' : 
-             `${filteredJobs.length} Jobs Found${Object.keys(filtersData).length > 0 ? ' (Filtered)' : ''}`}
+            {isLoading
+              ? 'Searching jobs...'
+              : `${filteredJobs.length} Jobs Found${
+                  Object.keys(filtersData).length > 0 ? ' (Filtered)' : ''
+                }`}
           </Text>
         </View>
       </View>
@@ -424,10 +441,7 @@ function JobList() {
       )}
 
       <View style={styles.filterContainer}>
-        <TouchableOpacity
-          onPress={() => openFilterScreen(0)}
-          style={styles.filterIconContainer}
-        >
+        <TouchableOpacity onPress={() => openFilterScreen(0)} style={styles.filterIconContainer}>
           <Image
             style={{ width: 40, height: '100%', objectFit: 'contain' }}
             source={require('../../../assets/image/filterIcon.png')}
@@ -438,7 +452,7 @@ function JobList() {
             </View>
           )}
         </TouchableOpacity>
-        
+
         <FlatList
           horizontal
           data={filterOptions}
@@ -448,7 +462,7 @@ function JobList() {
           style={styles.scrollBadgeFilter}
         />
       </View>
-      
+
       <JobDetailModal
         visible={modalVisible}
         onClose={closeJobDetail}
@@ -544,8 +558,9 @@ export const styles = StyleSheet.create({
     fontFamily: 'Poppins-Regular',
   },
   jobImage: {
-    width: 35,
-    height: 35,
+    width: 45,
+    height: 45,
+    borderRadius: 100,
   },
   jobDetails: {
     flex: 1,

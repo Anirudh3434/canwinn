@@ -1,13 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  Image,
-  Animated,
-  Pressable
-} from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image, Animated, Pressable } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -44,42 +36,38 @@ export default function MyTabs() {
   const sidebarAnim = useRef(new Animated.Value(-300)).current; // Sidebar animation
 
   useEffect(() => {
-   
-
     const initializeApp = async () => {
       try {
         const lastTab = await AsyncStorage.getItem('lastTab');
         const storedUserId = await AsyncStorage.getItem('userId');
-        
+
         if (lastTab) setInitialRoute(lastTab);
         if (storedUserId) {
           setUserId(storedUserId);
-          
+
           // Check if userId is valid before making API call
           if (!storedUserId) {
             throw new Error('User ID not found in storage');
           }
 
           // Make API call to get role information
-          const response = await axios.get(API_ENDPOINTS.STEP, { 
-            params: { user_id: storedUserId } 
+          const response = await axios.get(API_ENDPOINTS.STEP, {
+            params: { user_id: storedUserId },
           });
-          
-       
-          
+
           // Better handling of the response data
           if (response.data && response.data.data && response.data.data.role_id !== undefined) {
             const userRoleId = parseInt(response.data.data.role_id, 10);
-        
+
             setRoleId(userRoleId);
-            
+
             // Also store roleId in AsyncStorage for backup
             await AsyncStorage.setItem('userRoleId', userRoleId.toString());
           } else {
             // Fallback to check if role_id might be at a different location in the response
             if (response.data && response.data.role_id !== undefined) {
               const userRoleId = parseInt(response.data.role_id, 10);
-          
+
               setRoleId(userRoleId);
               await AsyncStorage.setItem('userRoleId', userRoleId.toString());
             } else {
@@ -91,16 +79,15 @@ export default function MyTabs() {
         }
       } catch (error) {
         console.error('❌ Error initializing app:', error);
-        
+
         // Try to recover roleId from AsyncStorage if API call fails
         try {
           const storedRoleId = await AsyncStorage.getItem('userRoleId');
           if (storedRoleId) {
-           
             setRoleId(parseInt(storedRoleId, 10));
           } else {
             // Default to role 1 if we can't determine the role
-          
+
             setRoleId(1);
             setError(error.message || 'Failed to load user role');
           }
@@ -116,8 +103,6 @@ export default function MyTabs() {
 
     initializeApp();
   }, []);
-
-
 
   const handleTabPress = async (routeName) => {
     try {
@@ -155,7 +140,7 @@ export default function MyTabs() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-   <HomeSkeleton/> 
+        <HomeSkeleton />
       </View>
     );
   }
@@ -178,8 +163,8 @@ export default function MyTabs() {
         <TouchableOpacity style={styles.backButton} onPress={handleRetry}>
           <Text style={styles.backButtonText}>Retry</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.backButton, {marginTop: 10, backgroundColor: '#777'}]} 
+        <TouchableOpacity
+          style={[styles.backButton, { marginTop: 10, backgroundColor: '#777' }]}
           onPress={() => navigation.navigate('Login')}
         >
           <Text style={styles.backButtonText}>Back to Login</Text>

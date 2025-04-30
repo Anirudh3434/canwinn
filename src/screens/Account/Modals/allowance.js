@@ -8,21 +8,19 @@ import { API_ENDPOINTS } from '../../../api/apiConfig';
 import { Alert } from 'react-native';
 
 const AddWorkplaceHighlights = () => {
+  const navigation = useNavigation();
 
-
-  const navigation = useNavigation()
-
-  const  route = useRoute();
+  const route = useRoute();
   const { data } = route.params;
 
   const company = data?.data;
 
-  console.log(company)
+  console.log(company);
 
   const [highlightText, setHighlightText] = useState('');
   const [highlights, setHighlights] = useState(company?.allowances?.split(',') || []);
 
-  console.log(highlights)
+  console.log(highlights);
 
   const handleAddHighlight = () => {
     if (highlightText.trim() !== '') {
@@ -31,12 +29,8 @@ const AddWorkplaceHighlights = () => {
     }
   };
 
- 
-
-
   const handleSave = async () => {
-    
-     const payload = {
+    const payload = {
       allowances: highlights.join(','),
       company_id: parseInt(company?.company_id ?? 0),
       company_type: company?.company_type ?? '',
@@ -71,7 +65,7 @@ const AddWorkplaceHighlights = () => {
       console.error(error);
       Alert.alert('Error', 'Something went wrong while saving');
     }
-  }
+  };
 
   const handleSelectPreset = (preset) => {
     if (!highlights.includes(preset)) {
@@ -93,14 +87,17 @@ const AddWorkplaceHighlights = () => {
       </TouchableOpacity>
       <Text style={styles.title}>Add Workplace Highlights</Text>
       <Text style={styles.subtitle}>
-        Let candidates know what makes your company a great place to work. Highlight your values, benefits, and culture.
+        Let candidates know what makes your company a great place to work. Highlight your values,
+        benefits, and culture.
       </Text>
 
       {/* Add a Workplace Highlight Input */}
       <View style={styles.addHighlightContainer}>
-        <Text style={styles.addHighlightLabel}>Add a Workplace Highlight <Text style={styles.required}>*</Text></Text>
+        <Text style={styles.addHighlightLabel}>
+          Add a Workplace Highlight <Text style={styles.required}>*</Text>
+        </Text>
         <View style={styles.inputContainer}>
-          <ScrollView 
+          <ScrollView
             horizontal={true}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chipsScrollContainer}
@@ -132,27 +129,42 @@ const AddWorkplaceHighlights = () => {
       </View>
 
       {/* Preset Highlights */}
-      <TouchableOpacity style={styles.presetButton} onPress={() => handleSelectPreset('Competitive Salary & Perks')}>
+      <TouchableOpacity
+        style={styles.presetButton}
+        onPress={() => handleSelectPreset('Competitive Salary & Perks')}
+      >
         <Text style={styles.presetText}>Competitive Salary & Perks</Text>
         <Icon name="add-circle" size={20} color={Colors.primary} />
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.presetButton} onPress={() => handleSelectPreset('Hybrid Work Model ( Remote + Office )')}>
+      <TouchableOpacity
+        style={styles.presetButton}
+        onPress={() => handleSelectPreset('Hybrid Work Model ( Remote + Office )')}
+      >
         <Text style={styles.presetText}>Hybrid Work Model ( Remote + Office )</Text>
         <Icon name="add-circle" size={20} color={Colors.primary} />
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.presetButton} onPress={() => handleSelectPreset('Health & Wellness Benefits')}>
+      <TouchableOpacity
+        style={styles.presetButton}
+        onPress={() => handleSelectPreset('Health & Wellness Benefits')}
+      >
         <Text style={styles.presetText}>Health & Wellness Benefits</Text>
         <Icon name="add-circle" size={20} color={Colors.primary} />
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.presetButton} onPress={() => handleSelectPreset('Career Growth Opportunities')}>
+      <TouchableOpacity
+        style={styles.presetButton}
+        onPress={() => handleSelectPreset('Career Growth Opportunities')}
+      >
         <Text style={styles.presetText}>Career Growth Opportunities</Text>
         <Icon name="add-circle" size={20} color={Colors.primary} />
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.presetButton} onPress={() => handleSelectPreset('Collaborative & Diverse Work Culture')}>
+      <TouchableOpacity
+        style={styles.presetButton}
+        onPress={() => handleSelectPreset('Collaborative & Diverse Work Culture')}
+      >
         <Text style={styles.presetText}>Collaborative & Diverse Work Culture</Text>
         <Icon name="add-circle" size={20} color={Colors.primary} />
       </TouchableOpacity>
@@ -189,7 +201,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#667085',
     fontFamily: 'Poppins-Regular',
-    marginBottom: 20
+    marginBottom: 20,
   },
   addHighlightContainer: {
     marginBottom: 20,

@@ -6,7 +6,7 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
-  BackHandler
+  BackHandler,
 } from 'react-native';
 import style from '../../theme/style';
 import JobCard from '../../Components/Cards/JobCard';
@@ -17,8 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 
 const ManageJob = () => {
-
-    const navigation = useNavigation();
+  const navigation = useNavigation();
 
   const job = [
     {
@@ -46,8 +45,6 @@ const ManageJob = () => {
       status: 'Draft',
     },
   ];
-
-
 
   const [sortVisible, setSortVisible] = useState(false);
   const [statusVisible, setStatusVisible] = useState(false);
@@ -103,32 +100,33 @@ const ManageJob = () => {
                   style={styles.menuItem}
                   onPress={() => {
                     setSelectedSort('status');
-                    setStatusVisible(prev => !prev  );
+                    setStatusVisible((prev) => !prev);
                   }}
                 >
                   <View
                     style={[
                       styles.bullet,
                       {
-                        backgroundColor:
-                          selectedSort === 'status' ? Colors.primary : 'gray',
+                        backgroundColor: selectedSort === 'status' ? Colors.primary : 'gray',
                       },
                     ]}
                   />
                   <Text style={styles.menuText}>By Status</Text>
                 </TouchableOpacity>
-                
-                {statusVisible && 
+
+                {statusVisible &&
                   ['Active', 'Inactive', 'Draft'].map((status) => (
-                    <TouchableOpacity 
-                      key={status} 
+                    <TouchableOpacity
+                      key={status}
                       style={styles.menuItem}
-                      onPress={() => {handleStatusSelect(status); setSortVisible(false)}}
+                      onPress={() => {
+                        handleStatusSelect(status);
+                        setSortVisible(false);
+                      }}
                     >
                       <Text style={styles.menuText}>{status}</Text>
                     </TouchableOpacity>
-                  ))
-                }
+                  ))}
 
                 <TouchableOpacity
                   style={styles.menuItem}
@@ -142,8 +140,7 @@ const ManageJob = () => {
                     style={[
                       styles.bullet,
                       {
-                        backgroundColor:
-                          selectedSort === 'date' ? Colors.primary : 'gray',
+                        backgroundColor: selectedSort === 'date' ? Colors.primary : 'gray',
                       },
                     ]}
                   />

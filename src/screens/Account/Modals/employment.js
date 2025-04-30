@@ -54,13 +54,13 @@ const Employment = () => {
   const [skillList, setSkillList] = useState([]);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [skillOpen, setSkillOpen] = useState(false);
-  
+
   // Error state variables
   const [companyNameError, setCompanyNameError] = useState('');
   const [jobTitleError, setJobTitleError] = useState('');
   const [salaryError, setSalaryError] = useState('');
   const [formattedDateError, setFormattedDateError] = useState('');
-  
+
   useEffect(() => {
     const fetchUserId = async () => {
       try {
@@ -76,7 +76,7 @@ const Employment = () => {
     fetchUserId();
     fetchSkills();
   }, []);
-  
+
   const convertToDate = (dateString) => {
     if (!dateString) return new Date();
     // Handle both formats: DD/MM/YYYY and DD-MM-YYYY
@@ -87,14 +87,14 @@ const Employment = () => {
     const year = parseInt(parts[2], 10);
     return new Date(year, month, day);
   };
-  
+
   // ✅ Format date as DD/MM/YYYY
   const formatDate = (date) => {
     if (!(date instanceof Date) || isNaN(date)) return '';
     // Format as DD/MM/YYYY to match your UI display format
     return dayjs(date).format('DD/MM/YYYY');
   };
-  
+
   // ✅ Load data from props
   useEffect(() => {
     if (emp) {
@@ -108,7 +108,7 @@ const Employment = () => {
       setNoticePeriod(emp.notice_period || '');
       setCurrency(emp.currency || '');
       setSkill(emp?.skill_used || '');
-      
+
       if (emp.skill_used) {
         setSkillNames(emp.skill_used.split(',') || []);
         // You might need to map these to IDs if needed
@@ -239,7 +239,7 @@ const Employment = () => {
       const skills = await axios.get(API_ENDPOINTS.SKILL_LIST);
       const skillList = skills.data.data.map((item) => ({
         label: item.skill_name,
-        value: item.skill_id
+        value: item.skill_id,
       }));
       setSkillList(skillList);
     } catch (error) {
@@ -250,8 +250,8 @@ const Employment = () => {
   const handleAddSkillFromDropdown = () => {
     if (selectedSkill) {
       // Find the selected skill object from skillList
-      const selectedSkillObj = skillList.find(skill => skill.value === selectedSkill);
-      
+      const selectedSkillObj = skillList.find((skill) => skill.value === selectedSkill);
+
       // Check if skill already exists in the skills array
       if (selectedSkillObj && !skills.includes(selectedSkillObj.value)) {
         setSkills([...skills, selectedSkillObj.value]);
@@ -352,7 +352,9 @@ const Employment = () => {
           <Text style={styles.title}>Employment</Text>
         </View>
         <TouchableOpacity disabled={loading} onPress={handleSave}>
-          <Text style={styles.saveButton}>{emp ? loading ? 'Saving...' : 'Edit' : loading ? 'Saving...' : 'Save'}</Text>
+          <Text style={styles.saveButton}>
+            {emp ? (loading ? 'Saving...' : 'Edit') : loading ? 'Saving...' : 'Save'}
+          </Text>
         </TouchableOpacity>
       </View>
       <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">
@@ -458,7 +460,10 @@ const Employment = () => {
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Date of Join</Text>
-          <TouchableOpacity onPress={() => setShowDatePicker(true)} style={[styles.datePickerButton, formattedDateError && styles.inputError]}>
+          <TouchableOpacity
+            onPress={() => setShowDatePicker(true)}
+            style={[styles.datePickerButton, formattedDateError && styles.inputError]}
+          >
             <Text style={formattedDate ? styles.dateTextSelected : styles.dateTextPlaceholder}>
               {formattedDate || 'Select Date'}
             </Text>
@@ -519,8 +524,7 @@ const Employment = () => {
             ))}
         </View>
 
-
-          <View style={styles.inputContainer}>
+        <View style={styles.inputContainer}>
           <Text style={styles.label}>Skills</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <View style={{ flex: 1 }}>
@@ -543,15 +547,15 @@ const Employment = () => {
                 zIndexInverse={3000}
               />
             </View>
-            <TouchableOpacity 
-              style={[styles.addSkillButton, { marginLeft: 10 }]} 
+            <TouchableOpacity
+              style={[styles.addSkillButton, { marginLeft: 10 }]}
               onPress={handleAddSkillFromDropdown}
             >
               <Text style={styles.addSkillText}>Add</Text>
               <Ionicons name="add" size={18} color="#50B5A3" />
             </TouchableOpacity>
           </View>
-          
+
           {skillNames.length > 0 && (
             <View style={styles.skillsContainer}>
               {skillNames.map((skillName, index) => (
@@ -562,7 +566,7 @@ const Employment = () => {
                       const newSkillNames = [...skillNames];
                       newSkillNames.splice(index, 1);
                       setSkillNames(newSkillNames);
-                      
+
                       const newSkills = [...skills];
                       newSkills.splice(index, 1);
                       setSkills(newSkills);
@@ -615,8 +619,6 @@ const Employment = () => {
           </View>
           {salaryError && <Text style={styles.errorText}>{salaryError}</Text>}
         </View>
-
-      
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Notice period*</Text>

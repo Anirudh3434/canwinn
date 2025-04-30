@@ -10,6 +10,7 @@ import {
   Alert,
   ScrollView,
   Dimensions,
+  BackHandler,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -34,6 +35,17 @@ const JobSelection = () => {
     { title: 'Research and Analytics', icon: require('../../../assets/image/s5.png') },
     { title: 'Information Technology', icon: require('../../../assets/image/s6.png') },
   ];
+
+  useEffect(() => {
+    const backAction = () => {
+      // Your custom back button logic
+      return true; // Prevent default behavior
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => backHandler.remove(); // Clean up on unmount
+  }, []);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -107,8 +119,8 @@ const JobSelection = () => {
             <TouchableOpacity
               key={index}
               style={[
-                styles.jobButton, 
-                prefered_job_role === job.title && styles.selectedJobButton
+                styles.jobButton,
+                prefered_job_role === job.title && styles.selectedJobButton,
               ]}
               onPress={() => setPreferedJobRole(job.title)}
             >
@@ -139,11 +151,11 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     marginTop: height * 0.06,
-    paddingHorizontal: width * 0.05,   // 5% horizontal padding
-    paddingBottom: height * 0.1,       // 10% bottom padding
+    paddingHorizontal: width * 0.05, // 5% horizontal padding
+    paddingBottom: height * 0.1, // 10% bottom padding
   },
   title: {
-    fontSize: width * 0.075,            // Responsive font size
+    fontSize: width * 0.075, // Responsive font size
     fontWeight: 'bold',
     marginBottom: height * 0.02,
     textAlign: 'center',

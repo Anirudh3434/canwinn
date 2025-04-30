@@ -278,7 +278,11 @@ const BasicDetail = () => {
           </TouchableOpacity>
           <Text style={styles.title}>Basic Details</Text>
         </View>
-        <TouchableOpacity disabled={loading} onPress={handleSave} style={styles.saveButtonContainer}>
+        <TouchableOpacity
+          disabled={loading}
+          onPress={handleSave}
+          style={styles.saveButtonContainer}
+        >
           <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save'}</Text>
         </TouchableOpacity>
       </View>
@@ -358,7 +362,11 @@ const BasicDetail = () => {
             setValue={handleStateSelect}
             placeholder={country ? 'Select State' : 'Please select a country first'}
             placeholderStyle={styles.placeholderStyle}
-            style={[styles.dropdownStyle, !country && styles.disabledDropdown, stateError && styles.dropdownError]}
+            style={[
+              styles.dropdownStyle,
+              !country && styles.disabledDropdown,
+              stateError && styles.dropdownError,
+            ]}
             dropDownContainerStyle={[
               styles.dropDownContainerStyle,
               { height: getDropdownHeight(stateOpen, states.length) },

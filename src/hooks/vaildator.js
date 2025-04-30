@@ -19,10 +19,7 @@ export default function Validator() {
       return loading; // Return true to prevent default back press, false to allow it
     };
 
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      handleBackButton
-    );
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackButton);
 
     const getUserId = async () => {
       try {

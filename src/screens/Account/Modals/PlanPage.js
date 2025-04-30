@@ -17,7 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 const PlanPage = () => {
   const [selectedPlan, setSelectedPlan] = useState('Yearly');
 
-  const navigation =  useNavigation()
+  const navigation = useNavigation();
 
   const plans = [
     {

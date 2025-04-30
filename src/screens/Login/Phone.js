@@ -33,12 +33,9 @@ export default function Phone() {
 
   console.log(phoneNumber);
 
-
-
-
   const sendOtp = async () => {
     try {
-      console.log(phoneNumber)
+      console.log(phoneNumber);
       const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
       console.log(confirmation);
       navigation.navigate('Otp', { confirmation, type: 'phone', phoneNumber });
@@ -85,30 +82,30 @@ export default function Phone() {
             </Text>
 
             <PhoneInput
-  ref={phoneInput}
-  defaultValue={phoneNumber}
-  defaultCode="IN" // <- This sets default to India
-  layout="first"
-  onChangeFormattedText={text => setPhoneNumber(text)}
-  codeTextStyle={{ color: Colors.txt }}
-  textInputProps={{ placeholderTextColor: '#9E9E9E' }}
-  textInputStyle={{ color: Colors.txt }}
-  containerStyle={{
-    height: 64,
-    width: '100%',
-    borderColor: Colors.primary,
-    borderRadius: 10,
-    backgroundColor: Colors.bg,
-    borderWidth: 1,
-    marginTop: 20,
-    marginBottom: 20,
-  }}
-  textContainerStyle={{
-    paddingVertical: 0,
-    borderRadius: 50,
-    backgroundColor: Colors.bg,
-  }}
-/>
+              ref={phoneInput}
+              defaultValue={phoneNumber}
+              defaultCode="IN" // <- This sets default to India
+              layout="first"
+              onChangeFormattedText={(text) => setPhoneNumber(text)}
+              codeTextStyle={{ color: Colors.txt }}
+              textInputProps={{ placeholderTextColor: '#9E9E9E' }}
+              textInputStyle={{ color: Colors.txt }}
+              containerStyle={{
+                height: 64,
+                width: '100%',
+                borderColor: Colors.primary,
+                borderRadius: 10,
+                backgroundColor: Colors.bg,
+                borderWidth: 1,
+                marginTop: 20,
+                marginBottom: 20,
+              }}
+              textContainerStyle={{
+                paddingVertical: 0,
+                borderRadius: 50,
+                backgroundColor: Colors.bg,
+              }}
+            />
           </ScrollView>
 
           <TouchableOpacity onPress={sendOtp} style={[style.btn, { marginVertical: 20 }]}>

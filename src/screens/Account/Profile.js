@@ -1,4 +1,3 @@
-
 import {
   View,
   Text,
@@ -46,192 +45,175 @@ export default function Profile() {
   const [data, setData] = useState();
   const [VideoPopMenu, setVideoPopMenu] = useState(false);
   const [VideoProfile, setVideoProfile] = useState(null);
-45
+  45;
 
   const dispatch = useDispatch();
 
   const { height, width } = Dimensions.get('window');
 
-const pickDocument = async () => {
-  try {
-    const res = await DocumentPicker.pick({
-      type: [
-        DocumentPicker.types.pdf,
-        DocumentPicker.types.doc,
-        DocumentPicker.types.docx
-      ],
-    });
-
-
-
-
-
-    const file = res[0];
-    const filePath = file.uri.replace('file://', '');
-    const base64Data = await RNFS.readFile(filePath, 'base64');
-
-    const blob = {
-      name: file.name,
-      type: file.type,
-      data: base64Data,
-    };
-
-    setResume(blob);
-    uploadDocument(blob, 'R');
-  } catch (err) {
-    if (DocumentPicker.isCancel(err)) {
-      console.log('User cancelled document picker');
-    } else {
-      console.error('Error picking document:', err);
-    }
-  }
-};
-
-
-const uploadVideo = async () => {
-  const options = {
-    mediaType: 'video',
-    videoQuality: 'high',
-  };
-
-  launchImageLibrary(options, async (response) => {
-    if (response.didCancel) {
-      console.log('User cancelled video picker');
-      return;
-    }
-
-    if (response.errorCode) {
-      console.log('Picker error:', response.errorMessage);
-      return;
-    }
-
-    const video = response.assets[0];
-    const filePath = video.uri || video.originalPath;
-
+  const pickDocument = async () => {
     try {
+      const res = await DocumentPicker.pick({
+        type: [DocumentPicker.types.pdf, DocumentPicker.types.doc, DocumentPicker.types.docx],
+      });
+
+      const file = res[0];
+      const filePath = file.uri.replace('file://', '');
       const base64Data = await RNFS.readFile(filePath, 'base64');
+
       const blob = {
-        name: video.fileName || 'video.mp4',
-        type: video.type || 'video/mp4',
+        name: file.name,
+        type: file.type,
         data: base64Data,
       };
 
-      setVideoProfile(blob);
-      uploadDocument(blob, 'VP');
-      setVideoPopMenu(false)
+      setResume(blob);
+      uploadDocument(blob, 'R');
     } catch (err) {
-      console.error('Error reading video file:', err);
+      if (DocumentPicker.isCancel(err)) {
+        console.log('User cancelled document picker');
+      } else {
+        console.error('Error picking document:', err);
+      }
     }
-  });
-};
-
-const recordVideo = async () => {
-  const options = {
-    mediaType: 'video',
-    videoQuality: 'high',
-    durationLimit: 120,
   };
 
-  launchCamera(options, async (response) => {
-    if (response.didCancel) {
-      console.log('User cancelled video recording');
-      return;
-    }
-
-    if (response.errorCode) {
-      console.log('Camera error:', response.errorMessage);
-      return;
-    }
-
-    const video = response.assets?.[0];
-    if (!video) {
-      console.log('No video captured.');
-      return;
-    }
-
-    const filePath = video.uri || video.originalPath;
-
-    try {
-      const base64Data = await RNFS.readFile(filePath.replace('file://', ''), 'base64');
-
-      const blob = {
-        name: video.fileName || 'video.mp4',
-        uri: filePath,
-        type: video.type || 'video/mp4',
-        data: base64Data,
-      };
-
-      setVideoProfile(blob); // Save it in state if needed
-      console.log('Video blob:', blob);
-      uploadDocument(blob, 'VP'); // Upload it now
-      console.log('Video uploaded');
-      setVideoPopMenu(false);
-
-    } catch (err) {
-      console.error('Error reading recorded video:', err);
-    }
-  });
-};
-
-
-
-// console.log('Recorded video:', VideoProfile);
-
-
-const pickImage = () => {
-  ImagePicker.openPicker({
-    width: 300,
-    height: 300,
-    cropping: true,
-    cropperCircleOverlay: true,
-  })
-  .then(async (image) => {
-    const base64Data = await RNFS.readFile(image.path, 'base64');
-    const blob = {
-      name: image.filename || 'profile.jpg',
-      type: image.mime,
-      uri: image.path,
-      data: base64Data,
+  const uploadVideo = async () => {
+    const options = {
+      mediaType: 'video',
+      videoQuality: 'high',
     };
 
-    setProfileImage(blob);
-    uploadDocument(blob, 'PP');
-  })
-  .catch((error) => {
-    console.log('ImagePicker Error: ', error);
-  });
-};
+    launchImageLibrary(options, async (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled video picker');
+        return;
+      }
 
+      if (response.errorCode) {
+        console.log('Picker error:', response.errorMessage);
+        return;
+      }
 
-const uploadDocument = async (data, type) => {
-  const payload = {
-    user_id: userId,
-    type: type,
-    file_name: data.name,
-    mime_type: data.type,
-    blob_file: data.data,
+      const video = response.assets[0];
+      const filePath = video.uri || video.originalPath;
+
+      try {
+        const base64Data = await RNFS.readFile(filePath, 'base64');
+        const blob = {
+          name: video.fileName || 'video.mp4',
+          type: video.type || 'video/mp4',
+          data: base64Data,
+        };
+
+        setVideoProfile(blob);
+        uploadDocument(blob, 'VP');
+        setVideoPopMenu(false);
+      } catch (err) {
+        console.error('Error reading video file:', err);
+      }
+    });
   };
 
-  console.log('Payload:', payload);
+  const recordVideo = async () => {
+    const options = {
+      mediaType: 'video',
+      videoQuality: 'high',
+      durationLimit: 120,
+    };
 
-  try {
-    const response = await axios.post(API_ENDPOINTS.DOCS, payload, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      timeout: 10000, // Optional: increase timeout for big uploads
+    launchCamera(options, async (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled video recording');
+        return;
+      }
+
+      if (response.errorCode) {
+        console.log('Camera error:', response.errorMessage);
+        return;
+      }
+
+      const video = response.assets?.[0];
+      if (!video) {
+        console.log('No video captured.');
+        return;
+      }
+
+      const filePath = video.uri || video.originalPath;
+
+      try {
+        const base64Data = await RNFS.readFile(filePath.replace('file://', ''), 'base64');
+
+        const blob = {
+          name: video.fileName || 'video.mp4',
+          uri: filePath,
+          type: video.type || 'video/mp4',
+          data: base64Data,
+        };
+
+        setVideoProfile(blob); // Save it in state if needed
+        console.log('Video blob:', blob);
+        uploadDocument(blob, 'VP'); // Upload it now
+        console.log('Video uploaded');
+        setVideoPopMenu(false);
+      } catch (err) {
+        console.error('Error reading recorded video:', err);
+      }
     });
+  };
 
-    console.log('Upload response:', response.data);
+  // console.log('Recorded video:', VideoProfile);
 
-    refetch();
-  } catch (error) {
-    console.error('Upload failed:', error.response?.data || error.message);
-  }
-};
+  const pickImage = () => {
+    ImagePicker.openPicker({
+      width: 300,
+      height: 300,
+      cropping: true,
+      cropperCircleOverlay: true,
+    })
+      .then(async (image) => {
+        const base64Data = await RNFS.readFile(image.path, 'base64');
+        const blob = {
+          name: image.filename || 'profile.jpg',
+          type: image.mime,
+          uri: image.path,
+          data: base64Data,
+        };
 
+        setProfileImage(blob);
+        uploadDocument(blob, 'PP');
+      })
+      .catch((error) => {
+        console.log('ImagePicker Error: ', error);
+      });
+  };
 
+  const uploadDocument = async (data, type) => {
+    const payload = {
+      user_id: userId,
+      type: type,
+      file_name: data.name,
+      mime_type: data.type,
+      blob_file: data.data,
+    };
 
+    console.log('Payload:', payload);
+
+    try {
+      const response = await axios.post(API_ENDPOINTS.DOCS, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        timeout: 10000, // Optional: increase timeout for big uploads
+      });
+
+      console.log('Upload response:', response.data);
+
+      refetch();
+    } catch (error) {
+      console.error('Upload failed:', error.response?.data || error.message);
+    }
+  };
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -249,35 +231,34 @@ const uploadDocument = async (data, type) => {
     fetchUserId();
   }, []);
 
-  
-    const { profileDetail, isLoading, isError , refetch} = useFetchProfileDetail(userId);
-
-
+  const { profileDetail, isLoading, isError, refetch } = useFetchProfileDetail(userId);
 
   useEffect(() => {
     if (profileDetail && Object.keys(profileDetail).length > 0) {
       setData(profileDetail);
     }
 
-    setProfileImage (profileDetail?.docs?.pp_url ? { uri: profileDetail?.docs?.pp_url } : require('../../../assets/image/profileIcon.png'));
+    setProfileImage(
+      profileDetail?.docs?.pp_url
+        ? { uri: profileDetail?.docs?.pp_url }
+        : require('../../../assets/image/profileIcon.png')
+    );
 
     const resumeData = {
-      name : profileDetail?.docs?.resume_file_name,
-      url : profileDetail?.docs?.resume_file_url,
-    }
+      name: profileDetail?.docs?.resume_file_name,
+      url: profileDetail?.docs?.resume_file_url,
+    };
 
     const videoData = {
-      name : profileDetail?.docs?.vid_pro_name,
-      url : profileDetail?.docs?.vid_pro_url,
+      name: profileDetail?.docs?.vid_pro_name,
+      url: profileDetail?.docs?.vid_pro_url,
+    };
+
+    if (profileDetail?.docs) {
+      setResume(resumeData);
     }
-
-    if(profileDetail?.docs){setResume(resumeData);}
     setVideoProfile(videoData);
-
-
-
   }, [profileDetail]);
-  
 
   useEffect(() => {
     if (sideBar) {
@@ -308,8 +289,6 @@ const uploadDocument = async (data, type) => {
       ]).start();
     }
   }, [sideBar, slideAnim, fadeAnim]);
-
-
 
   const VideoPop = ({ onClose }) => {
     const translateY = useRef(new Animated.Value(0)).current;
@@ -369,13 +348,8 @@ const uploadDocument = async (data, type) => {
     );
   };
 
- 
-
   return (
     <SafeAreaView style={[style.area, { backgroundColor: Colors.bg, padding: 0 }]}>
-
-    
-   
       {VideoPopMenu && (
         <View
           style={[
@@ -723,7 +697,7 @@ const uploadDocument = async (data, type) => {
             </View>
 
             {/* Resume Card */}
-         <View
+            <View
               style={{
                 marginHorizontal: 20,
                 marginBottom: 20,
@@ -740,18 +714,18 @@ const uploadDocument = async (data, type) => {
               >
                 <Text style={[style.m18, { color: '#000' }]}>Resume</Text>
                 {resume?.name && (
-                <View style={{ flexDirection: 'row', alignItems: 'center' , gap: 30 }}>
-                    <TouchableOpacity onPress={()=>navigation.navigate('CreateResume')}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 30 }}>
+                    <TouchableOpacity onPress={() => navigation.navigate('CreateResume')}>
                       <Text style={[style.m16, { color: '#14B6AA' }]}>
-                        {resume?.name &&  'Build'}
+                        {resume?.name && 'Build'}
                       </Text>
                     </TouchableOpacity>
-                  <TouchableOpacity onPress={pickDocument}>
-                    <Text style={[style.m16, { color: '#14B6AA' }]}>
-                      {resume?.name ? 'Edit' : 'Upload'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                    <TouchableOpacity onPress={pickDocument}>
+                      <Text style={[style.m16, { color: '#14B6AA' }]}>
+                        {resume?.name ? 'Edit' : 'Upload'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 )}
               </View>
 
@@ -771,15 +745,18 @@ const uploadDocument = async (data, type) => {
                 <View>
                   {resume?.name ? (
                     <>
-                      <Text style={{ fontSize: 16, color: '#333' , width: 250}}>{resume.name}</Text>
+                      <Text style={{ fontSize: 16, color: '#333', width: 250 }}>{resume.name}</Text>
                       <Text style={{ fontSize: 14, color: '#666' }}>
-                      <TouchableOpacity onPress={() => navigation.navigate('PdfViewer', {
-                   pdfUrl: resume?.url,
-              fileName: resume?.name
-            })}> 
-            
-            <Text style={{ color: '#14B6AA', fontSize: 14 }}>View Resume</Text>
-            </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() =>
+                            navigation.navigate('PdfViewer', {
+                              pdfUrl: resume?.url,
+                              fileName: resume?.name,
+                            })
+                          }
+                        >
+                          <Text style={{ color: '#14B6AA', fontSize: 14 }}>View Resume</Text>
+                        </TouchableOpacity>
                       </Text>
                     </>
                   ) : (
@@ -832,7 +809,7 @@ const uploadDocument = async (data, type) => {
               </View>
             </View>
             {/* Video Profile */}
-           <View
+            <View
               style={{
                 marginHorizontal: 20,
                 marginBottom: 20,
@@ -869,23 +846,26 @@ const uploadDocument = async (data, type) => {
                 <View style={{ flex: 1 }}>
                   {/* Added flex: 1 to ensure proper text wrapping */}
                   <Text style={[style.m14, { color: '#333' }]}>
-               {VideoProfile?.name ? VideoProfile?.name : ' Improve your hiring chance by 30% by adding a video'}
+                    {VideoProfile?.name
+                      ? VideoProfile?.name
+                      : ' Improve your hiring chance by 30% by adding a video'}
                   </Text>
                   {VideoProfile?.name ? (
-                 
-  <TouchableOpacity onPress={() => navigation.navigate('VideoViewer', {
-                    videoUrl: VideoProfile?.url,
-              fileName: VideoProfile?.name
-            })}> 
-            
-            <Text style={{ color: '#14B6AA', fontSize: 14 }}>View Video</Text>
-            </TouchableOpacity>
-                    
-                  ) : 
-                   <Text style={[style.r12, { color: '#666' }]}>
+                    <TouchableOpacity
+                      onPress={() =>
+                        navigation.navigate('VideoViewer', {
+                          videoUrl: VideoProfile?.url,
+                          fileName: VideoProfile?.name,
+                        })
+                      }
+                    >
+                      <Text style={{ color: '#14B6AA', fontSize: 14 }}>View Video</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <Text style={[style.r12, { color: '#666' }]}>
                       Recruiters prefer candidates with a video Profile
                     </Text>
-                  }
+                  )}
                 </View>
               </View>
             </View>
@@ -1087,44 +1067,43 @@ const uploadDocument = async (data, type) => {
               {/* Employment List or Empty State */}
               {data?.employment?.length > 0 ? (
                 <View>
-                  {data.employment
-                    .map((emp, index) => (
-                      <TouchableOpacity
-                        onPress={() => navigation.navigate('Employment', { emp: emp, id: userId })}
-                        key={emp.emp_id}
+                  {data.employment.map((emp, index) => (
+                    <TouchableOpacity
+                      onPress={() => navigation.navigate('Employment', { emp: emp, id: userId })}
+                      key={emp.emp_id}
+                      style={{
+                        marginBottom: 12,
+                        borderBottomWidth: index !== data.employment.length - 1 ? 1 : 0,
+                        borderColor: '#f0f0f0',
+                        paddingBottom: index !== data.employment.length - 1 ? 20 : 8,
+                      }}
+                    >
+                      {/* Job Title and Edit Icon */}
+                      <View
                         style={{
-                          marginBottom: 12,
-                          borderBottomWidth: index !== data.employment.length - 1 ? 1 : 0,
-                          borderColor: '#f0f0f0',
-                          paddingBottom: index !== data.employment.length - 1 ? 20 : 8,
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
                         }}
                       >
-                        {/* Job Title and Edit Icon */}
-                        <View
-                          style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
+                        <Text
+                          style={{ fontSize: 16, color: 'black', fontWeight: '600', padding: 2 }}
                         >
-                          <Text
-                            style={{ fontSize: 16, color: 'black', fontWeight: '600', padding: 2 }}
-                          >
-                            {emp.curr_job_title}
-                          </Text>
-                        </View>
+                          {emp.curr_job_title}
+                        </Text>
+                      </View>
 
-                        {/* Company and Duration Details */}
-                        <Text style={{ fontSize: 12, color: '#888', padding: 2 }}>
-                          {emp.curr_company_name}
-                        </Text>
-                        <Text style={{ fontSize: 12, color: '#888' }}>
-                          {emp.joining_date}{' '}
-                          {emp.isCurrentCompany &&
-                            `(${emp.total_exp_in_years}y ${emp.total_exp_in_months}m)`}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                      {/* Company and Duration Details */}
+                      <Text style={{ fontSize: 12, color: '#888', padding: 2 }}>
+                        {emp.curr_company_name}
+                      </Text>
+                      <Text style={{ fontSize: 12, color: '#888' }}>
+                        {emp.joining_date}{' '}
+                        {emp.isCurrentCompany &&
+                          `(${emp.total_exp_in_years}y ${emp.total_exp_in_months}m)`}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
               ) : (
                 <View style={{ alignItems: 'center', padding: 10 }}>
@@ -1448,7 +1427,7 @@ const uploadDocument = async (data, type) => {
                   <View style={{ marginBottom: 12 }}>
                     <Text style={[style.r11, { color: '#888' }]}>Salary Expectation</Text>
                     <Text style={[style.m12, { color: '#333' }]}>
-                      {profileDetail?.careerPreference?.currency || 'N/A'} {' '}
+                      {profileDetail?.careerPreference?.currency || 'N/A'}{' '}
                       {profileDetail?.careerPreference?.current_annual_salary || 'Not specified'}
                     </Text>
                   </View>

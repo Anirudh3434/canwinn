@@ -54,6 +54,8 @@ export default function ComProfile() {
 
       setProfileImage(blob);
       uploadDocument(blob, 'CL');
+      
+
     })
     .catch((error) => {
       console.log('ImagePicker Error: ', error);
@@ -79,6 +81,8 @@ export default function ComProfile() {
       console.error('Upload failed:', error);
     }
   };
+
+
 
   useEffect(() => {
     const fetchUserId = async () => {

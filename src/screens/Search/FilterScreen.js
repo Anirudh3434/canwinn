@@ -36,7 +36,15 @@ function FilterScreen({ data, SearchFilterData, filterVisible, index }) {
     { name: 'Salary', Option: ['0-3 LPA', '3-6 LPA', '6-10 LPA', '10+ LPA'] },
     {
       name: 'Industries',
-      Option: ['IT & Software', 'Healthcare', 'Finance', 'Education', 'Manufacturing', 'Marketing', 'Technology'],
+      Option: [
+        'IT & Software',
+        'Healthcare',
+        'Finance',
+        'Education',
+        'Manufacturing',
+        'Marketing',
+        'Technology',
+      ],
     },
     { name: 'Work Type', Option: ['Full-Time', 'Part-Time', 'Contract', 'Internship'] },
     {
@@ -57,13 +65,15 @@ function FilterScreen({ data, SearchFilterData, filterVisible, index }) {
     { name: 'Stipend', Option: ['Unpaid', '0-5K per month', '5K-10K per month', '10K+ per month'] },
     {
       name: 'Education',
-      Option: ['Higher Secondary', 'Diploma', "Doctorate", "Post Graduate", 'Graduate'],
+      Option: ['Higher Secondary', 'Diploma', 'Doctorate', 'Post Graduate', 'Graduate'],
     },
     { name: 'Posted By', Option: ['Company', 'Consultant'] },
   ];
 
   // Initialize with the heading at the provided index
-  const [selectedHeading, setSelectedHeading] = useState(FilterHeadings[index] || FilterHeadings[0]);
+  const [selectedHeading, setSelectedHeading] = useState(
+    FilterHeadings[index] || FilterHeadings[0]
+  );
   // Use state to store filter data with previous selections
   const [filterData, setFilterData] = useState(data || {});
   // Store a backup of original data to compare changes

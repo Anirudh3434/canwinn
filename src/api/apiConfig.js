@@ -26,9 +26,8 @@ const API_ENDPOINTS = {
   EDUCATION: `${BASE_URL}/user-education`,
   PROJECTS: `${BASE_URL}/user-projects`,
   SKILLS: `${BASE_URL}/user-skills`,
-  DOCS : `${BASE_URL}/user-docs`,
-  VISIBLE : `${BASE_URL}/user-visibility`,
-  
+  DOCS: `${BASE_URL}/user-docs`,
+  VISIBLE: `${BASE_URL}/user-visibility`,
 
   //Company API
   EMPLOYER: `${BASE_URL}/employers`,
@@ -48,9 +47,7 @@ const API_ENDPOINTS = {
   JOB_CATEGORY: `${BASE_URL}/job-categories`,
   JOBS_FILTER: `${BASE_URL}/filtering`,
 
-
   FETCH_JOB_POSTING: `${BASE_URL}/emp-job-posted`,
-
 };
 
 export { BASE_URL, API_ENDPOINTS };

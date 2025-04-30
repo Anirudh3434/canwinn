@@ -43,7 +43,6 @@ const CompanyContactUs = () => {
     state: parseInt(company?.state ?? 0),
     pincode: parseInt(company?.pincode ?? 0),
     founded_year: parseInt(company?.founded_year ?? 0),
-
   };
 
   const validateEmail = (email) => {
@@ -52,29 +51,26 @@ const CompanyContactUs = () => {
   };
 
   const handleSave = async () => {
-
     if (!validateEmail(email)) {
       Alert.alert('Invalid Email', 'Please enter a valid email address');
       return;
     }
 
     try {
-      setLoading(true)
+      setLoading(true);
       const response = await axios.post(API_ENDPOINTS.COMPANY_DETAILS, payload);
       const res = response?.data;
 
       if (res?.status === 'success') {
-        
         navigation.navigate('MyTabs');
-        setLoading(false)
+        setLoading(false);
       } else {
-        
-        setLoading(false)
+        setLoading(false);
       }
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Something went wrong while saving');
-      setLoading(false)
+      setLoading(false);
     }
   };
   return (
@@ -87,7 +83,11 @@ const CompanyContactUs = () => {
           </TouchableOpacity>
           <Text style={styles.title}>Company Details</Text>
         </View>
-        <TouchableOpacity disabled={loading} onPress={handleSave} style={styles.saveButtonContainer}>
+        <TouchableOpacity
+          disabled={loading}
+          onPress={handleSave}
+          style={styles.saveButtonContainer}
+        >
           <Text style={styles.saveButtonText}> {loading ? 'Saving...' : 'Save'}</Text>
         </TouchableOpacity>
       </View>

@@ -114,9 +114,7 @@ const LanguageDetail = () => {
             onChangeText={setLanguageName}
             placeholderTextColor="#C8C8C8"
           />
-          {languageNameError ? (
-            <Text style={styles.errorText}>{languageNameError}</Text>
-          ) : null}
+          {languageNameError ? <Text style={styles.errorText}>{languageNameError}</Text> : null}
         </View>
 
         {/* Proficiency */}
