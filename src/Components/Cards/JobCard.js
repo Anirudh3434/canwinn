@@ -53,7 +53,7 @@ const JobCard = ({ job, onRepost, onDelete, onEdit, onMenu, home }) => {
     <View style={styles.cardContainer}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <View style={styles.cardHeader}>
-          <Image style={styles.jobLogo} source={require('../../../assets/image/s17.png')} />
+          <Image style={styles.jobLogo} source={{uri : job?.company_logo}} />
           <View>
             <Text style={styles.jobTitle} numberOfLines={2} ellipsizeMode="tail">
               {job?.job_title?.length > 20

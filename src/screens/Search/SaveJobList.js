@@ -16,9 +16,9 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { Colors } from '../../theme/color';
 import style from '../../theme/style';
 import JobDetailModal from '../Home/JobDetail';
-
-import useRecommenedJob from '../../hooks/Jobs/recommenedJob';
-import useRecentJobs from '../../hooks/Jobs/recentAddJobs';
+import axios from 'axios';
+import { API_ENDPOINTS } from '../../api/apiConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Skeleton job card using package
 const SkeletonJobCard = () => (
@@ -38,7 +38,6 @@ const SkeletonJobCard = () => (
           <SkeletonPlaceholder.Item width="60%" height={20} borderRadius={8} marginTop={5} />
           <SkeletonPlaceholder.Item width="60%" height={20} borderRadius={8} marginTop={5} />
         </SkeletonPlaceholder.Item>
-
         <SkeletonPlaceholder.Item width="25%" height={100} borderRadius={10}>
           <SkeletonPlaceholder.Item width={70} height={70} borderRadius={50} />
         </SkeletonPlaceholder.Item>
@@ -47,12 +46,50 @@ const SkeletonJobCard = () => (
   </View>
 );
 
-function RecommendedJobsList() {
+function SaveJobList() {
+  const [jobs, setJobs] = useState([]);
   const route = useRoute();
   const navigation = useNavigation();
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [successPop, setSuccessPop] = useState(false);
 
-  // Get jobType from params with fallback to 'recommendedJobs'
-  const { jobType = 'recommendedJobs' } = route.params || {};
+  const fetchSaveJob = async () => {
+    setIsLoading(true);
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      if (!userId) {
+        throw new Error('User ID not found');
+      }
+      
+      const response = await axios.get(API_ENDPOINTS.SAVE_JOBS, {
+        params: { user_id: parseInt(userId, 10) }
+      });
+      
+      if (response.data && response.data.data) {
+        setJobs(response.data.data);
+      } else {
+        setJobs([]);
+      }
+      setHasError(false);
+    } catch (error) {
+      console.error('Error fetching saved jobs:', error);
+      setHasError(true);
+      setJobs([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const refetchJobs = () => {
+    fetchSaveJob();
+  };
+
+  useEffect(() => {
+    fetchSaveJob();
+  }, []);
 
   const backAction = () => {
     if (navigation.isFocused()) {
@@ -63,28 +100,8 @@ function RecommendedJobsList() {
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
     return () => backHandler.remove();
   }, [navigation]);
-
-  const {
-    recommendedJobs,
-    recommendedLoading,
-    recommendedError,
-    refetch: refetchRecommendedJobs,
-  } = useRecommenedJob();
-
-  const { recentJobs, recentLoading, recentError, refetch: refetchRecentJobs } = useRecentJobs();
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedJob, setSelectedJob] = useState(null);
-  const [successPop, setSuccessPop] = useState(false);
-
-  // Determine which data to use based on jobType
-  const jobs = jobType === 'recommendedJobs' ? recommendedJobs : recentJobs;
-  const isLoading = jobType === 'recommendedJobs' ? recommendedLoading : recentLoading;
-  const hasError = jobType === 'recommendedJobs' ? recommendedError : recentError;
-  const refetchJobs = jobType === 'recommendedJobs' ? refetchRecommendedJobs : refetchRecentJobs;
 
   const handleSuccessPopup = () => {
     setSuccessPop(true);
@@ -118,7 +135,6 @@ function RecommendedJobsList() {
             {item.min_experience}-{item.max_experience} years{' '}
           </Text>
         </View>
-
         <View style={[styles.detailRow, { marginTop: 10 }]}>
           <Text
             style={[
@@ -130,10 +146,9 @@ function RecommendedJobsList() {
           </Text>
         </View>
       </View>
-
       <View style={styles.ratingContainer}>
         <Image
-          source={{ uri: item.company_logo }}
+          source={ { uri: item.company_logo } }
           style={styles.jobImage}
           resizeMode="contain"
         />
@@ -154,7 +169,7 @@ function RecommendedJobsList() {
     <View style={styles.emptyContainer}>
       <Ionicons name="search-outline" size={50} color="#757575" />
       <Text style={styles.emptyText}>
-        No {jobType === 'recommendedJobs' ? 'recommended' : 'recent'} jobs found
+        No jobs found
       </Text>
     </View>
   );
@@ -175,7 +190,6 @@ function RecommendedJobsList() {
         barStyle={modalVisible ? 'light-content' : 'dark-content'}
         backgroundColor={modalVisible ? 'rgba(0, 0, 0, 0.5)' : 'white'}
       />
-
       {successPop && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
@@ -193,7 +207,6 @@ function RecommendedJobsList() {
           </View>
         </View>
       )}
-
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.navigate('MyTabs')}
@@ -201,14 +214,12 @@ function RecommendedJobsList() {
         >
           <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
-
         <View style={styles.headerText}>
           <Text style={styles.resultsText}>
-            {jobType === 'recommendedJobs' ? 'Recommended Jobs' : 'Recent Jobs'}
+            Saved Jobs
           </Text>
         </View>
       </View>
-
       {isLoading ? (
         renderSkeletonLoading()
       ) : hasError ? (
@@ -217,25 +228,24 @@ function RecommendedJobsList() {
         <FlatList
           data={jobs}
           renderItem={renderJobCard}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.job_id?.toString() || Math.random().toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
         />
       ) : (
         renderEmptyState()
       )}
-
       <JobDetailModal
         visible={modalVisible}
         onClose={closeJobDetail}
         job={selectedJob}
-        onSucess={handleSuccessPopup}
+        onSuccess={handleSuccessPopup}
       />
     </SafeAreaView>
   );
 }
 
-export default RecommendedJobsList;
+export default SaveJobList;
 
 const styles = StyleSheet.create({
   header: {

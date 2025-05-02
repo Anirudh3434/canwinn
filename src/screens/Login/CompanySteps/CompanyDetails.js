@@ -134,6 +134,8 @@ const CompanyDetails = () => {
     try {
       const response = await axios.post(API_ENDPOINTS.DOCS, payload);
       console.log(response.data);
+      setCompanyLogo(response?.data?.company_logo);
+      console.log('Upload successful:', response.data);
     } catch (error) {
       console.error('Upload failed:', error);
     }
@@ -211,6 +213,7 @@ const CompanyDetails = () => {
     }
 
     const data = {
+      company_logo: companyLogo,
       company_type: accountType,
       company_name: companyName,
       industry: industryValue,
@@ -233,9 +236,7 @@ const CompanyDetails = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="black" />
-          </TouchableOpacity>
+          
         </View>
         <ScrollView
           contentContainerStyle={styles.scrollContainer}

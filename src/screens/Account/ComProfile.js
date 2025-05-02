@@ -75,12 +75,35 @@ export default function ComProfile() {
 
     try {
       const response = await axios.post(API_ENDPOINTS.DOCS, payload);
-      console.log('Response:', response.data);
+      console.log('Response:', response.data.company_logo);
+      UpdateCompanylogo(response?.data?.company_logo);
+      
       navigation.navigate('MyTabs');
     } catch (error) {
       console.error('Upload failed:', error);
     }
   };
+
+
+
+  const UpdateCompanylogo = async (logo) => {
+    const payload ={
+      company_id: +data?.data?.company_id,
+      company_logo: logo,
+    }
+
+    console.log('Payload:', payload);
+
+    try {
+      const response = await axios.post(API_ENDPOINTS.COMPANY_DETAILS, payload);
+      console.log('Response:', response.data);
+    }
+    catch (error) {
+      console.error('Update failed:', error);
+    }
+   
+  }
+    
 
 
 

@@ -14,8 +14,9 @@ import {
   StatusBar,
   ScrollView,
   Platform,
+  Alert,
 } from 'react-native';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Colors } from '../../theme/color';
 import style from '../../theme/style';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -28,10 +29,16 @@ export default function Phone() {
   const route = useRoute();
   const navigation = useNavigation();
   const { data } = route.params;
-  const [phoneNumber, setPhoneNumber] = useState();
+  const [phoneNumber, setPhoneNumber] = useState(data?.data?.mobile_number || '');
   const phoneInput = useRef(null);
 
-  console.log(phoneNumber);
+  useEffect(() => {
+    Alert.alert(
+      'Note',
+      'Please select the country code before proceeding.',
+      [{ text: 'OK' }]
+    );
+  }, []);
 
   const sendOtp = async () => {
     try {
@@ -84,7 +91,7 @@ export default function Phone() {
             <PhoneInput
               ref={phoneInput}
               defaultValue={phoneNumber}
-              defaultCode="IN" // <- This sets default to India
+              defaultCode="IN"
               layout="first"
               onChangeFormattedText={(text) => setPhoneNumber(text)}
               codeTextStyle={{ color: Colors.txt }}

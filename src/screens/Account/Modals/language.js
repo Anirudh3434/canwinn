@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Alert
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -42,6 +43,37 @@ const LanguageDetail = () => {
       setComfortable([...comfortable, option]);
     }
   };
+
+  const handleDelete = async () => {
+
+    Alert.alert(
+      'Delete Language ',
+      'Are you sure you want to delete this Employment record?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          onPress: async () => {
+            try {
+              console .log('Deleting Language with ID:' , language?.lang_id);
+              const response = await axios.delete(API_ENDPOINTS.DELETE_LANGUAGE, {params: {language_id: language?.lang_id}});
+              console.log('Delete response:', response.data);
+              console.log(response.data);
+              if (response.data.status === 'success') {
+                navigation.navigate('MyTabs');
+              }
+            } catch (error) {
+              console.error('Error deleting Language:', error);
+            }
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  }
 
   const validateInputs = () => {
     let isValid = true;
@@ -98,9 +130,22 @@ const LanguageDetail = () => {
           </TouchableOpacity>
           <Text style={styles.title}>Language</Text>
         </View>
-        <TouchableOpacity disabled={loading} onPress={handleSave}>
-          <Text style={styles.saveButton}>{loading ? 'Saving...' : 'Save'}</Text>
-        </TouchableOpacity>
+        <View style={{ display: 'flex', flexDirection: 'row', gap: 30 , alignItems: 'center' }}>
+               
+                    
+               
+                     <TouchableOpacity disabled={loading} onPress={handleSave}>
+                         <Text style={styles.saveButton}>
+                           {language ? (loading ? 'Saving...' : 'Edit') : loading ? 'Saving...' : 'Save'}
+                         </Text>
+                       </TouchableOpacity>
+               
+               
+                 {language &&    <TouchableOpacity style={styles.trashButton} onPress={handleDelete}>
+                       <Ionicons name="trash-outline" size={20} color="red" />
+                     </TouchableOpacity>}
+         </View>
+        
       </View>
 
       <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">

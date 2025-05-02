@@ -94,6 +94,37 @@ const ProjectDetail = () => {
     setWorkTill(formatDate(currentDate));
   };
 
+  const handleDelete = async () => {
+
+    Alert.alert(
+      'Delete Project ',
+      'Are you sure you want to delete this Project record?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          onPress: async () => {
+            try {
+              console .log('Deleting Project with ID:' , project?.project_id);
+              const response = await axios.delete(API_ENDPOINTS.DELETE_PROJECT, {params: {project_id: project?.project_id}});
+              console.log('Delete response:', response.data);
+              console.log(response.data);
+              if (response.data.status === 'success') {
+                navigation.navigate('MyTabs');
+              }
+            } catch (error) {
+              console.error('Error deleting Project:', error);
+            }
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  }
+
   const validateInputs = () => {
     let isValid = true;
     const today = new Date();
@@ -183,9 +214,21 @@ const ProjectDetail = () => {
           </TouchableOpacity>
           <Text style={styles.title}>Projects</Text>
         </View>
-        <TouchableOpacity disabled={loading} onPress={handleSave}>
-          <Text style={styles.saveButton}>{loading ? 'Saving' : 'Save'}</Text>
-        </TouchableOpacity>
+        <View style={{ display: 'flex', flexDirection: 'row', gap: 30 , alignItems: 'center' }}>
+                      
+                           
+                      
+                            <TouchableOpacity disabled={loading} onPress={handleSave}>
+                                <Text style={styles.saveButton}>
+                                  {project ? (loading ? 'Saving...' : 'Edit') : loading ? 'Saving...' : 'Save'}
+                                </Text>
+                              </TouchableOpacity>
+                      
+                      
+                        {project &&    <TouchableOpacity style={styles.trashButton} onPress={handleDelete}>
+                              <Ionicons name="trash-outline" size={20} color="red" />
+                            </TouchableOpacity>}
+                </View>
       </View>
 
       <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">

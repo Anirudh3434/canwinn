@@ -176,7 +176,7 @@ const ResumeTemplate = ({ route, navigation }) => {
         <div style="text-align: right;">
           <div style="font-size: 13px; color: #555; margin-bottom: 2px;">${
             exp.JoiningDate || exp.joining_date || ""
-          } - ${exp.isCurrent === "Yes" ? "Present" : exp.LeavingDate || exp.leaving_date || "NA"}</div>
+          }  ${exp.isCurrent === "Yes" ? "Present" :""}</div>
           <div style="font-size: 13px; color: #555;">${exp.location || ""} ${
             exp.total_exp_in_years || exp.total_exp_in_months
               ? `• ${exp.total_exp_in_years || "0"}y ${exp.total_exp_in_months || "0"}m`
@@ -411,14 +411,7 @@ const ResumeTemplate = ({ route, navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#ffffff" barStyle="dark-content" />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation?.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Resume</Text>
-        <View style={styles.placeholder} />
-      </View>
+     
 
       {/* Resume Content */}
       <ScrollView style={styles.scrollView}>
@@ -528,8 +521,8 @@ const ResumeTemplate = ({ route, navigation }) => {
 
                     <View style={styles.periodLocationContainer}>
                       <Text style={styles.periodText}>
-                        {`${exp.JoiningDate || exp.joining_date || ""} - ${
-                          exp.isCurrent === "Yes" ? "Present" : exp.LeavingDate || exp.leaving_date || "NA"
+                        {`${exp.JoiningDate || exp.joining_date || ""}  ${
+                          exp.isCurrent === "Yes" ? "Present" : ""
                         }`}
                       </Text>
 
@@ -610,6 +603,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9fa",
   },
   header: {
+    
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -633,6 +627,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    
   },
   resumeContainer: {
     backgroundColor: "#ffffff",

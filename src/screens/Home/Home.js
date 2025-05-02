@@ -36,7 +36,7 @@ import useRecommenedJob from '../../hooks/Jobs/recommenedJob';
 import useRecentJobs from '../../hooks/Jobs/recentAddJobs';
 import JobSuccess from '../../Components/Popups/JobSuccess';
 
-export default function Home() {
+export default function  Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigation = useNavigation();
   const [name, setName] = useState('');
@@ -117,7 +117,7 @@ export default function Home() {
     refetch: refetchRecommendedJobs,
   } = useRecommenedJob();
 
-  console.log('recommendedJobs', recommendedJobs);
+
 
   const { recentJobs, recentLoading, recentError, refetch: refetchRecentJobs } = useRecentJobs();
 
@@ -641,9 +641,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   jobCardLogo: {
-    height: 35,
-    width: 35,
-    borderRadius: 5,
+    height: 40,
+    width: 40,
+    borderRadius: 50,
   },
   jobCardContent: {
     flex: 1,

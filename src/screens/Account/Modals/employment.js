@@ -11,6 +11,7 @@ import {
   Dimensions,
   Modal,
   Platform,
+  Alert
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -138,6 +139,37 @@ const Employment = () => {
     'More than 15 days',
     'Serving Notice Period',
   ];
+
+  const handleDelete = async () => {
+
+    Alert.alert(
+      'Delete Employment ',
+      'Are you sure you want to delete this Employment record?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          onPress: async () => {
+            try {
+              console .log('Deleting employment with ID:', emp.emp_id);
+              const response = await axios.delete(API_ENDPOINTS.DELETE_EMPLOYMENT, {params: {employment_id: emp?.emp_id}});
+              console.log('Delete response:', response.data);
+              console.log(response.data);
+              if (response.data.status === 'success') {
+                navigation.navigate('MyTabs');
+              }
+            } catch (error) {
+              console.error('Error deleting employment:', error);
+            }
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  }
 
   const validateInputs = () => {
     let isValid = true;
@@ -351,11 +383,21 @@ const Employment = () => {
           </TouchableOpacity>
           <Text style={styles.title}>Employment</Text>
         </View>
-        <TouchableOpacity disabled={loading} onPress={handleSave}>
-          <Text style={styles.saveButton}>
-            {emp ? (loading ? 'Saving...' : 'Edit') : loading ? 'Saving...' : 'Save'}
-          </Text>
-        </TouchableOpacity>
+        <View style={{ display: 'flex', flexDirection: 'row', gap: 30 , alignItems: 'center' }}>
+       
+            
+       
+             <TouchableOpacity disabled={loading} onPress={handleSave}>
+                 <Text style={styles.saveButton}>
+                   {emp ? (loading ? 'Saving...' : 'Edit') : loading ? 'Saving...' : 'Save'}
+                 </Text>
+               </TouchableOpacity>
+       
+       
+         {emp &&    <TouchableOpacity style={styles.trashButton} onPress={handleDelete}>
+               <Ionicons name="trash-outline" size={20} color="red" />
+             </TouchableOpacity>}
+             </View>
       </View>
       <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.inputContainer}>

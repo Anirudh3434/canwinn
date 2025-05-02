@@ -587,6 +587,7 @@ const AddJob = () => {
                 </Text>
                 <DropDownPicker
                   listMode="SCROLLVIEW"
+
                   scrollViewProps={{ nestedScrollEnabled: true }}
                   open={employmentTypeOpen}
                   setOpen={(open) => {
@@ -598,14 +599,17 @@ const AddJob = () => {
                   items={[
                     { label: 'Full-time', value: 'full-time' },
                     { label: 'Part-time', value: 'part-time' },
-                    { label: 'Contract', value: 'contract' },
+                    { label: 'Contract', value: 'contract'},
+                      {label: 'Internship', value: 'internship' },
+                    
                   ]}
                   placeholder="Select Employment Type"
                   placeholderStyle={{ color: '#A9A9A9' }}
-                  style={styles.dropdownInput}
-                  dropDownContainerStyle={styles.dropdownContainer}
+                  style={[styles.dropdownInput ,  ]}
+                  dropDownContainerStyle={[styles.dropdownContainer ]}
                   zIndex={3000}
                   zIndexInverse={2500}
+                
                 />
               </View>
 
@@ -765,7 +769,7 @@ const AddJob = () => {
 
           {activeTab === 'requirements' && (
             <View style={styles.formContainer}>
-              {requirements.map((requirement, index) => (
+              {requirements.filter((item)=>item != '').map((requirement, index) => (
                 <View key={index} style={styles.requirementsContainer}>
                   <View
                     style={{
@@ -843,7 +847,7 @@ const AddJob = () => {
               setWorkplaceType(null);
               setDepartment('');
               setEmploymentType('');
-              setReceiveApplicantsBy('');
+              setReceiveApplicantsBy('email');
               setEmail('');
               setMinExperience('');
               setMaxExperience('');
@@ -966,7 +970,7 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
     backgroundColor: 'white',
     borderRadius: 10,
-    minHeight: 48,
+    minHeight: 60,
   },
   dropdownContainer: {
     borderWidth: 1,

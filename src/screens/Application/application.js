@@ -64,8 +64,12 @@ const Application = ({ navigation }) => {
         status = 'Inactive';
       }
 
+      if (selectedBadge === 'All Vacancies') {
+        status = '';
+      }
+
       const response = await axios.get(API_ENDPOINTS.FETCH_JOB_POSTING, {
-        params: { user_id: userId, status },
+        params: { user_id: userId , status },
       });
 
       if (response.data && response.data.data) {
@@ -313,6 +317,7 @@ const Application = ({ navigation }) => {
                   onDelete={() => handleDelete(item)}
                   onRepost={() => handleRepost(item)}
                   onPress={() => toggleJobApplicants(index)}
+                  home={true}
                 />
               </View>
 

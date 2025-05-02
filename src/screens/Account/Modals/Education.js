@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -59,9 +60,6 @@ const EducationDetails = () => {
   const filter = educationLevelOptions.filter((option) => !done?.includes(option));
 
 
-  console.log ('done', done);
-
-  console.log ('filter', filter);
 
   const [boardOpen, setBoardOpen] = useState(false);
 
@@ -104,6 +102,37 @@ const EducationDetails = () => {
     { label: 'Cambridge (IGCSE)', value: 'Cambridge (IGCSE)' },
     { label: 'Other', value: 'Other' },
   ];
+
+
+  const handleDelete = async () => {
+    Alert.alert(
+      'Delete Education',
+      'Are you sure you want to delete this Education record?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          onPress: async () => {
+            try {
+              console.log('Deleting education record with ID:', typeof edu?.education_id);
+              const response = await axios.delete(API_ENDPOINTS.DELETE_EDUCATION, {params: {education_id: edu?.education_id}});
+              console.log('Delete response:', response.data);
+              console.log(response.data);
+              if (response.data.status === 'success') {
+                navigation.navigate('MyTabs');
+              }
+            } catch (error) {
+              console.error('Error deleting education:', error);
+            }
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  }
 
   const validateInputs = () => {
     let isValid = true;
@@ -233,11 +262,21 @@ const EducationDetails = () => {
           </TouchableOpacity>
           <Text style={styles.title}>Education</Text>
         </View>
-        <TouchableOpacity disabled={loading} onPress={handleSave}>
+      <View style={{ display: 'flex', flexDirection: 'row', gap: 30 , alignItems: 'center' }}>
+
+     
+
+      <TouchableOpacity disabled={loading} onPress={handleSave}>
           <Text style={styles.saveButton}>
             {edu ? (loading ? 'Saving...' : 'Edit') : loading ? 'Saving...' : 'Save'}
           </Text>
         </TouchableOpacity>
+
+
+   {edu &&   <TouchableOpacity style={styles.trashButton} onPress={handleDelete}>
+        <Ionicons name="trash-outline" size={20} color="red" />
+      </TouchableOpacity>}
+      </View>
       </View>
 
       <ScrollView
@@ -577,6 +616,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Poppins-Regular',
   },
+ 
 });
 
 export default EducationDetails;

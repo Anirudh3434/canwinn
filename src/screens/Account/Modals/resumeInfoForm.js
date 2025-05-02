@@ -155,7 +155,7 @@ const PersonalDetails = () => {
     if (!validateAllFields()) return;
 
     // Navigate to Resume Template with all the data as params
-    navigation.navigate('ResumeTemplete', {
+    navigation.navigate('Resume Templete', {
       personalData: {
         fullName: fullName,
         email: email,

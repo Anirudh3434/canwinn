@@ -551,7 +551,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = Jobile;
+				PRODUCT_BUNDLE_IDENTIFIER = org.reactjs.native.Jobile;
 				PRODUCT_NAME = Jobile;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";

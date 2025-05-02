@@ -89,6 +89,8 @@ const KycScreen = () => {
     }
   };
 
+ 
+
   const fetchCompanyLogo = async (uid) => {
     try {
       const response = await axios.get(`${API_ENDPOINTS.DOCS}?user_id=${uid}`);
@@ -175,6 +177,10 @@ const KycScreen = () => {
 
     setIsLoading(true);
 
+
+    
+
+
     try {
       // Step 1: Upload documents in parallel
       const uploadPromises = uploadedFiles.map((file) => uploadDocument(file, 'VD'));
@@ -184,7 +190,7 @@ const KycScreen = () => {
       const companyPayload = {
         ...companyData,
         company_gstin: gstNumber,
-        company_logo: companyLogo,
+     
       };
 
       const companyResponse = await axios.post(API_ENDPOINTS.COMPANY_DETAILS, companyPayload);

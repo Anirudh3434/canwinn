@@ -8,6 +8,7 @@ import {
   Modal,
   ScrollView,
   Share,
+  Alert,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors } from '../../theme/color';
@@ -94,14 +95,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
     }
   }, [userId]);
 
-  // Input handlers
-  const handleInputFocus = (inputName) => {
-    setFocusedInput(inputName);
-  };
-
-  const handleInputBlur = () => {
-    setFocusedInput(null);
-  };
+ 
 
   // Document picker
   const pickDocument = async () => {
@@ -174,6 +168,24 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
     }
   };
 
+  const handleSaveJob = async () => {
+    try {
+      const response = await axios.post(API_ENDPOINTS.SAVE_JOBS, {
+        user_id: userId,
+        job_id: job.job_id,
+      });
+      if (response.data.status === 'success') {
+        Alert.alert('Job saved successfully');
+      } else {
+       Alert.alert('Failed to save job');
+      }
+    } catch (error) {
+      console.error('Error saving job:', error);
+      Alert.alert('Failed to save job. Please try again.');
+    }
+
+  }
+
   // Parse qualifications
   const qualifications =
     job?.job_requirments && job.job_requirments !== '' ? job.job_requirments.split(',') : [];
@@ -192,7 +204,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
               <Ionicons name="close" size={24} color="black" />
             </TouchableOpacity>
             <View style={{ flexDirection: 'row', gap: 10 }}>
-              <TouchableOpacity style={{ backgroundColor: 'white', borderRadius: 50, padding: 8 }}>
+              <TouchableOpacity onPress={handleSaveJob} style={{ backgroundColor: 'white', borderRadius: 50, padding: 8 }}>
                 <Ionicons name="bookmark-outline" size={24} color={Colors.primary} />
               </TouchableOpacity>
               <TouchableOpacity
@@ -221,7 +233,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
 
             <View style={styles.jobDetailHeader}>
               <Image
-                source={require('../../../assets/image/s17.png')}
+                source={ { uri: job?.company_logo }}
                 style={styles.jobDetailImage}
               />
               <View style={styles.jobTitleContainer}>
@@ -304,7 +316,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
               <Text style={styles.sectionTitle}>About Company</Text>
               <Text style={styles.descriptionText}>{job?.about || 'No description available'}</Text>
 
-              <Text style={styles.sectionTitle}>Qualification</Text>
+              <Text style={styles.sectionTitle}>Requirements</Text>
               <View style={styles.requirementsList}>
                 {qualifications.length > 0 ? (
                   qualifications.map((item, index) => (
@@ -314,7 +326,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
                     </View>
                   ))
                 ) : (
-                  <Text style={styles.requirementText}>No Qualifications</Text>
+                  <Text style={styles.requirementText}>No Requirements</Text>
                 )}
               </View>
 
@@ -440,7 +452,7 @@ const styles = StyleSheet.create({
   jobDetailImage: {
     width: 60,
     height: 60,
-    borderRadius: 12,
+    borderRadius: 50,
     marginRight: 15,
   },
   AlertContainer: {

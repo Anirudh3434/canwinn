@@ -79,6 +79,7 @@ import VisiblityOptions from '../Components/Settings/VisiblityOptions';
 import ProfileVisitVisibility from '../Components/Settings/ProfileVisitVisibility';
 import DiscoverByEmail from '../Components/Settings/EmaiVisible';
 import DiscoverByPhone from '../Components/Settings/PhoneVisible';
+import SaveJobList from '../screens/Search/SaveJobList';
 
 const Stack = createNativeStackNavigator();
 
@@ -249,10 +250,12 @@ const StackNavigator = () => {
 
         <Stack.Screen name="On1" component={On1} options={{ headerShown: false }} />
         <Stack.Screen
-          name="ResumeTemplete"
+          name="Resume Templete"
           component={ResumeTemp}
-          options={{ headerShown: false }}
+        
         />
+
+        <Stack.Screen name='SaveJob' component={SaveJobList} options={{ headerShown: false }} />
 
         <Stack.Screen
           name="VistorProfile"
