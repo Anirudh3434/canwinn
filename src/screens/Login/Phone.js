@@ -1,5 +1,5 @@
 /**
- * Developed by Aman Kumar
+ * Developed by Aman Kumar And Anirudh Bhardwaj
  * Date: 2025-01-31
  * Description: Manually Enter Number to send OTP on Provided number.
  */
@@ -30,6 +30,7 @@ export default function Phone() {
   const navigation = useNavigation();
   const { data } = route.params;
   const [phoneNumber, setPhoneNumber] = useState(data?.data?.mobile_number || '');
+  const [loading, setLoading] = useState(false); // To prevent multiple OTP sends
   const phoneInput = useRef(null);
 
   useEffect(() => {
@@ -41,6 +42,8 @@ export default function Phone() {
   }, []);
 
   const sendOtp = async () => {
+    if (loading) return; // Prevent multiple presses
+    setLoading(true);
     try {
       console.log(phoneNumber);
       const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
@@ -48,7 +51,9 @@ export default function Phone() {
       navigation.navigate('Otp', { confirmation, type: 'phone', phoneNumber });
     } catch (error) {
       console.error('OTP send error:', error);
-      alert('Failed to send OTP. Please check the number.');
+      Alert.alert('Failed to send OTP. Please check the number.');
+    } finally {
+      setLoading(false); // Allow retry if needed
     }
   };
 
@@ -91,7 +96,6 @@ export default function Phone() {
             <PhoneInput
               ref={phoneInput}
               defaultValue={phoneNumber}
-              defaultCode="IN"
               layout="first"
               onChangeFormattedText={(text) => setPhoneNumber(text)}
               codeTextStyle={{ color: Colors.txt }}
@@ -115,8 +119,12 @@ export default function Phone() {
             />
           </ScrollView>
 
-          <TouchableOpacity onPress={sendOtp} style={[style.btn, { marginVertical: 20 }]}>
-            <Text style={[style.btntxt]}>CONTINUE</Text>
+          <TouchableOpacity
+            onPress={sendOtp}
+            style={[style.btn, { marginVertical: 20, opacity: loading ? 0.5 : 1 }]}
+            disabled={loading}
+          >
+            <Text style={[style.btntxt]}>{loading ? 'SENDING...' : 'CONTINUE'}</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

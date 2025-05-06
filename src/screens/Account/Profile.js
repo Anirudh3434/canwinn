@@ -29,8 +29,7 @@ import { toggleSidebar } from '../../redux/slice/sideBarSlice';
 import axios from 'axios';
 import RNFS from 'react-native-fs';
 import { API_ENDPOINTS } from '../../api/apiConfig';
-import Pdf from 'react-native-pdf';
-import Video from 'react-native-video';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 export default function Profile() {
   const navigation = useNavigation();
@@ -45,6 +44,7 @@ export default function Profile() {
   const [data, setData] = useState();
   const [VideoPopMenu, setVideoPopMenu] = useState(false);
   const [VideoProfile, setVideoProfile] = useState(null);
+  const [JobSearchStatusMenu, setJobSearchStatusMenu] = useState(false);
   
   const [DoneQulaified, setDoneQulified] = useState([]);
 
@@ -367,6 +367,112 @@ export default function Profile() {
     );
   };
 
+  const JobSearchStatus = ({ onClose, onSelect }) => {
+    const [selectedOption, setSelectedOption] = useState(null);
+    
+    const options = [
+      { label: 'Actively searching jobs', value: 'actively_searching' },
+      { label: 'Preparing for interview', value: 'preparing_interview' },
+      { label: 'Appearing for interview', value: 'appearing_interview' },
+      { label: 'Received a job offer', value: 'received_offer' },
+      { label: 'Negotiating offer', value: 'negotiating_offer' },
+      { label: 'Casually exploring jobs', value: 'casually_exploring' },
+      { label: 'Not looking for jobs', value: 'not_looking' },
+    ];
+  
+    const translateY = useRef(new Animated.Value(0)).current;
+    
+    const panResponder = useRef(
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gestureState) =>
+          gestureState.dy > 5 || gestureState.dy < -5,
+        onPanResponderMove: Animated.event([null, { dy: translateY }], { useNativeDriver: false }),
+        onPanResponderRelease: (_, gestureState) => {
+          if (gestureState.dy > 100) {
+            Animated.timing(translateY, {
+              toValue: height,
+              duration: 300,
+              useNativeDriver: false,
+            }).start(onClose);
+          } else {
+            Animated.spring(translateY, {
+              toValue: 0,
+              useNativeDriver: false,
+            }).start();
+          }
+        },
+      })
+    ).current;
+  
+    const handleSelect = (option) => {
+      setSelectedOption(option);
+    };
+  
+    const handleSetNow = () => {
+      if (selectedOption) {
+        onSelect?.(selectedOption);
+        onClose();
+      }
+    };
+  
+    return (
+      <Animated.View
+        style={[
+          styles.VideoPop, 
+          { 
+            transform: [{ translateY }],
+            height: height - 200,
+            gap: 15,
+            paddingHorizontal: 30
+          }
+        ]}
+        {...panResponder.panHandlers}
+      >
+        <Text style={styles.title}>Where are you in your job search journey?</Text>
+        {options.map((option, index) => {
+  const isSelected = selectedOption?.value === option.value;
+  return (
+    <TouchableOpacity
+      key={index}
+      style={[
+        styles.optionButton,
+        isSelected && styles.selectedOption
+      ]}
+      onPress={() => handleSelect(option)}
+    >
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Text 
+          style={[
+            styles.optionText,
+            isSelected && styles.selectedOptionText
+          ]}
+        >
+          {option.label}
+        </Text>
+        {isSelected && (
+        <Ionicons name='checkmark' size={20} color={Colors.primary} style={{ marginLeft: 10 }} />
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+})}
+
+        <View style={{width: '100%', alignItems: 'flex-end', justifyContent: 'center'}}>
+          <TouchableOpacity 
+            style={[
+              styles.setButton,
+              !selectedOption && styles.disabledButton
+            ]} 
+            onPress={handleSetNow}
+            disabled={!selectedOption}
+          >
+            <Text style={styles.setButtonText}>Set Now</Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+    );
+  };
+
   return (
     <SafeAreaView style={[style.area, { backgroundColor: Colors.bg, padding: 0 }]}>
       {VideoPopMenu && (
@@ -384,6 +490,24 @@ export default function Profile() {
           <VideoPop onClose={() => setVideoPopMenu(false)} />
         </View>
       )}
+
+{JobSearchStatusMenu && (
+        <View
+          style={[
+            styles.overlay,
+            {
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+            },
+          ]}
+        >
+          <JobSearchStatus onClose={() => setJobSearchStatusMenu(false)} />
+        </View>
+      )}
+
+
       <StatusBar backgroundColor="#FFFDF7" translucent={false} barStyle={'dark-content'} />
 
       <KeyboardAvoidingView
@@ -510,6 +634,9 @@ export default function Profile() {
 
             {/* Job Search Status */}
             <TouchableOpacity
+              onPress={() => {
+                setJobSearchStatusMenu(true);
+              }}
               style={{
                 flexDirection: 'row',
                 height: 40, // Increased height for better spacing
@@ -1510,6 +1637,7 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: 'bold',
     fontFamily: 'Poppins',
+    marginBottom: 10,
   },
   subtitle: {
     textAlign: 'center',
@@ -1561,4 +1689,41 @@ const styles = StyleSheet.create({
     zIndex: 1002, // Higher than overlay
     backgroundColor: 'white', // Make sure it has a background
   },
+
+  optionButton: {
+   width: '100%',
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#D5D9DF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: 8,
+    backgroundColor: 'white',
+  },
+
+  optionText: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Regular',
+    color: '#6F6F6F',
+    marginLeft: 10,
+  },
+
+  setButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: Colors.primary,
+  },
+  setButtonText: {
+    fontSize: 16,
+    fontFamily: 'Poppins-Medium',
+    color: '#fff',
+  },
+  selectedOption: {
+    borderColor: Colors.primary,
+    backgroundColor: '#EEFFFE'
+  }
 });

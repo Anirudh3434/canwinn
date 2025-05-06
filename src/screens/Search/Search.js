@@ -124,7 +124,7 @@ export default function Search() {
             <Text style={styles.sectionTitle}>Your most recent searches</Text>
 
             {searchHistory.length > 0 ? (
-              <ScrollView style={styles.recentSearchList}>
+              <ScrollView horizontal={true} style={styles.recentSearchList}>
                 {searchHistory
                   .slice()
                   .reverse()
@@ -136,7 +136,7 @@ export default function Search() {
                     >
                       <Icon name="search" size={15} color={Colors.disable2} />
                       <Text style={styles.recentSearchText}>
-                        {item.search}, {item.location}
+                        {item.search && item.search + ' ,'} {item.location ? item.location : ' All'}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -149,7 +149,7 @@ export default function Search() {
             )}
           </View>
 
-          <View style={styles.companyContainer}>
+          {/* <View style={styles.companyContainer}>
             <Text style={styles.sectionTitle}>Top companies</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {[...Array(3)].map((_, index) => (
@@ -170,7 +170,7 @@ export default function Search() {
                 </View>
               ))}
             </ScrollView>
-          </View>
+          </View> */}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -254,6 +254,7 @@ const styles = StyleSheet.create({
     borderColor: '#DDDDDD',
     borderRadius: 10,
     marginTop: 10,
+    marginLeft: 10,
   },
   recentSearchText: {
     marginLeft: 10,

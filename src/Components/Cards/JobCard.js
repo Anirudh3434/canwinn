@@ -61,8 +61,14 @@ const JobCard = ({ job, onRepost, onDelete, onEdit, onMenu, home }) => {
                 : job?.job_title || job?.title || 'Job Title'}
             </Text>
             <Text style={styles.jobLocation}>
-              {job.JOB_LOCATION || job.location || 'Location not specified'}
-            </Text>
+  {job ? 
+    ((job.location || job.JOB_LOCATION) ? 
+      ((job.location || job.JOB_LOCATION).length > 40 ? 
+        (job.location || job.JOB_LOCATION).slice(0, 40) + '...' : 
+        (job.location || job.JOB_LOCATION)) : 
+      'Location not specified') : 
+    'Location not specified'}
+</Text>
             <Text style={styles.jobDate}>Posted: {job.created_at || 'Recently'}</Text>
           </View>
         </View>

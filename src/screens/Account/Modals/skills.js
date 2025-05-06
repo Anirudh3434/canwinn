@@ -151,28 +151,26 @@ const SkillMenu = () => {
 
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <View style={styles.dropdownContainer}>
-              <DropDownPicker
-                open={open}
-                value={selectedSkill}
-                items={dropdownItems}
-                setOpen={setOpen}
-                setValue={setSelectedSkill}
-                setItems={setDropdownItems}
-                placeholder="Select or search for a skill"
-                style={styles.dropdown}
-                dropDownContainerStyle={styles.dropdownList}
-                listMode="SCROLLVIEW"
-                scrollViewProps={{ nestedScrollEnabled: true }}
-                maxHeight={200}
-                searchable={true}
-                searchPlaceholder="Search for skills..."
-                searchContainerStyle={styles.searchContainer}
-                searchTextInputStyle={styles.searchTextInput}
-                searchPlaceholderTextColor="#999"
-                onChangeSearchText={(text) => {
-                  // No need to set state here if DropDownPicker handles it internally
-                }}
-              />
+            <DropDownPicker
+    
+          searchable  ={true}
+          listMode="SCROLLVIEW"
+          scrollViewProps={{ nestedScrollEnabled: true }}
+          open={skillOpen}
+          setOpen={(open) => {
+            if (open) handleOpenDropdown('skill');
+            else setSkillOpen(false);
+          }}
+          value={selectedSkill}
+          setValue={setSelectedSkill}
+          items={skillList}
+          placeholder="Select Skill"
+          style={[styles.dropdownInput]}
+          dropDownContainerStyle={[styles.dropdownContainer, { maxHeight: 200 }]}
+          zIndex={2000}
+          zIndexInverse={3000}
+        />
+
             </View>
 
             <TouchableOpacity

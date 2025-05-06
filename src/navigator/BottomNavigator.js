@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image, Animated, Pressable } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
@@ -19,6 +19,7 @@ import axios from 'axios';
 import { API_ENDPOINTS } from '../api/apiConfig';
 import HomeSkeleton from '../Components/Skuleton/HomeSkuleton';
 import ComHomeSkeleton from '../Components/Skuleton/ComHomeSkulton';
+import ProfileSkeleton from '../Components/Skuleton/profile_skelton';
 
 const Tab = createBottomTabNavigator();
 
@@ -35,74 +36,74 @@ export default function MyTabs() {
 
   const sidebarAnim = useRef(new Animated.Value(-300)).current; // Sidebar animation
 
-  useEffect(() => {
-    const initializeApp = async () => {
-      try {
-        const lastTab = await AsyncStorage.getItem('lastTab');
-        const storedUserId = await AsyncStorage.getItem('userId');
+  // Define initializeApp outside of useEffect so it can be reused in handleRetry
+  const initializeApp = useCallback(async () => {
+    try {
+      const lastTab = await AsyncStorage.getItem('lastTab');
+      const storedUserId = await AsyncStorage.getItem('userId');
 
-        if (lastTab) setInitialRoute(lastTab);
-        if (storedUserId) {
-          setUserId(storedUserId);
+      if (lastTab) setInitialRoute(lastTab);
+      if (storedUserId) {
+        setUserId(storedUserId);
 
-          // Check if userId is valid before making API call
-          if (!storedUserId) {
-            throw new Error('User ID not found in storage');
-          }
-
-          // Make API call to get role information
-          const response = await axios.get(API_ENDPOINTS.STEP, {
-            params: { user_id: storedUserId },
-          });
-
-          // Better handling of the response data
-          if (response.data && response.data.data && response.data.data.role_id !== undefined) {
-            const userRoleId = parseInt(response.data.data.role_id, 10);
-
-            setRoleId(userRoleId);
-
-            // Also store roleId in AsyncStorage for backup
-            await AsyncStorage.setItem('userRoleId', userRoleId.toString());
-          } else {
-            // Fallback to check if role_id might be at a different location in the response
-            if (response.data && response.data.role_id !== undefined) {
-              const userRoleId = parseInt(response.data.role_id, 10);
-
-              setRoleId(userRoleId);
-              await AsyncStorage.setItem('userRoleId', userRoleId.toString());
-            } else {
-              throw new Error('Role ID not found in API response');
-            }
-          }
-        } else {
+        // Check if userId is valid before making API call
+        if (!storedUserId) {
           throw new Error('User ID not found in storage');
         }
-      } catch (error) {
-        console.error('❌ Error initializing app:', error);
 
-        // Try to recover roleId from AsyncStorage if API call fails
-        try {
-          const storedRoleId = await AsyncStorage.getItem('userRoleId');
-          if (storedRoleId) {
-            setRoleId(parseInt(storedRoleId, 10));
+        // Make API call to get role information
+        const response = await axios.get(API_ENDPOINTS.STEP, {
+          params: { user_id: storedUserId },
+        });
+
+        // Better handling of the response data
+        if (response.data && response.data.data && response.data.data.role_id !== undefined) {
+          const userRoleId = parseInt(response.data.data.role_id, 10);
+
+          setRoleId(userRoleId);
+
+          // Also store roleId in AsyncStorage for backup
+          await AsyncStorage.setItem('userRoleId', userRoleId.toString());
+        } else {
+          // Fallback to check if role_id might be at a different location in the response
+          if (response.data && response.data.role_id !== undefined) {
+            const userRoleId = parseInt(response.data.role_id, 10);
+
+            setRoleId(userRoleId);
+            await AsyncStorage.setItem('userRoleId', userRoleId.toString());
           } else {
-            // Default to role 1 if we can't determine the role
-
-            setRoleId(1);
-            setError(error.message || 'Failed to load user role');
+            throw new Error('Role ID not found in API response');
           }
-        } catch (storageError) {
-          console.error('Failed to recover roleId from storage:', storageError);
-          setRoleId(1); // Default to role 1 as fallback
-          setError('Failed to determine user role');
         }
-      } finally {
-        setLoading(false);
+      } else {
+        throw new Error('User ID not found in storage');
       }
-    };
+    } catch (error) {
+      console.error('❌ Error initializing app:', error);
 
-    initializeApp();
+      // Try to recover roleId from AsyncStorage if API call fails
+      try {
+        const storedRoleId = await AsyncStorage.getItem('userRoleId');
+        if (storedRoleId) {
+          setRoleId(parseInt(storedRoleId, 10));
+        } else {
+          // Default to role 1 if we can't determine the role
+          setRoleId(1);
+          setError(error.message || 'Failed to load user role');
+        }
+      } catch (storageError) {
+        console.error('Failed to recover roleId from storage:', storageError);
+        setRoleId(1); // Default to role 1 as fallback
+        setError('Failed to determine user role');
+      }
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    initializeApp();
+  }, [initializeApp]);
 
   const handleTabPress = async (routeName) => {
     try {
@@ -137,10 +138,37 @@ export default function MyTabs() {
     initializeApp();
   };
 
-  if (loading) {
+  // Fix: use initialRoute instead of undefined lastTab variable
+  if (loading && initialRoute === 'Home') {
     return (
       <View style={styles.loadingContainer}>
         <HomeSkeleton />
+      </View>
+    );
+  }
+  if (loading && initialRoute === 'ComHome') {
+    return (
+      <View style={styles.loadingContainer}>
+        <ComHomeSkeleton />
+      </View>
+    );
+  }
+
+  if (loading && initialRoute === 'Profile') {
+    return (
+      <View style={styles.loadingContainer}>
+        <ProfileSkeleton />
+      </View>
+    );
+  }
+
+
+
+  // Generic loading state if we don't have a specific skeleton
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading...</Text>
       </View>
     );
   }

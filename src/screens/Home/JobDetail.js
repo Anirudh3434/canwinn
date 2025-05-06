@@ -14,7 +14,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Colors } from '../../theme/color';
 import DocumentPicker from 'react-native-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios'; // Added missing axios import
+import axios from 'axios';
 import { API_ENDPOINTS } from '../../api/apiConfig';
 
 const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
@@ -29,6 +29,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
   const [focusedInput, setFocusedInput] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isResume, setIsResume] = useState(false);
+  const [resumeFileName, setResumeFileName] = useState('');
 
   // Fetch user data
   const fetchUserId = async () => {
@@ -46,11 +47,17 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
     if (!userId) return;
     try {
       const response = await axios.get(`${API_ENDPOINTS.DOCS}?user_id=${userId}`);
-      if (response.data.data.resume_file_name !== '') {
-        setIsResume(true);
+      
+      if (response.data.status === 'success' && response.data.data) {
+        const hasResume = response.data.data.resume_file_name && response.data.data.resume_file_name !== '';
+        setIsResume(hasResume);
+        if (hasResume) {
+          setResumeFileName(response.data.data.resume_file_name);
+        }
       }
     } catch (error) {
       console.error('Error fetching docs:', error);
+      setIsResume(false);
     }
   };
 
@@ -86,16 +93,14 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
   // Use effect hooks
   useEffect(() => {
     fetchUserId();
-    fetchDocs();
   }, []);
 
   useEffect(() => {
     if (userId) {
       fetchUserData();
+      fetchDocs();
     }
   }, [userId]);
-
- 
 
   // Document picker
   const pickDocument = async () => {
@@ -104,8 +109,11 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
         type: [DocumentPicker.types.pdf, DocumentPicker.types.doc, DocumentPicker.types.docx],
       });
       setResume(res[0]);
+      // Set isResume to true since user has now picked a resume
+      setIsResume(true);
     } catch (err) {
       if (DocumentPicker.isCancel(err)) {
+        // User cancelled the picker
       } else {
         console.error('Error picking document:', err);
       }
@@ -114,22 +122,29 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
 
   // Form submission
   const handleSubmit = async () => {
+    if (!isResume && !resume) {
+      Alert.alert('Resume Required', 'Please upload your resume to apply for this job.');
+      return;
+    }
+    
     try {
       setIsLoading(true);
       const response = await axios.post(API_ENDPOINTS.JOB_APPLY, {
         user_id: userId,
         job_id: job.job_id,
       });
-      console.log(response.data);
+      
       if (response.data.status === 'success') {
+        Alert.alert('Success', 'Your application has been submitted successfully.');
         setShowApplicationForm(false);
         onClose();
         onSuccess();
+      } else {
+        Alert.alert('Error', response.data.message || 'Failed to submit application');
       }
-      setIsLoading(false);
     } catch (error) {
       console.error('Error submitting application:', error);
-      alert('Failed to submit application. Please try again.');
+      Alert.alert('Error', 'Failed to submit application. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -139,17 +154,22 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
   const FileInput = () => {
     return (
       <View>
-        <View>
-          {!isResume && (
-            <View style={styles.AlertContainer}>
-              <Ionicons name="alert" size={24} color={Colors.primary} />
-              <Text style={styles.AlertText}>Resume not uploaded</Text>
-            </View>
-          )}
-        </View>
+        {!isResume && !resume ? (
+          <View style={styles.AlertContainer}>
+            <Ionicons name="alert" size={24} color={Colors.primary} />
+            <Text style={styles.AlertText}>Resume not uploaded</Text>
+          </View>
+        ) : (
+          <View style={styles.AlertContainer}>
+            <Ionicons name="checkmark" size={24} color={Colors.primary} />
+            <Text style={styles.AlertText}>Resume available</Text>
+          </View>
+        )}
         <TouchableOpacity style={styles.fileInput} onPress={pickDocument}>
           <Ionicons name="document-attach-outline" size={24} color={Colors.primary} />
-          <Text style={styles.fileInputText}>{resume ? resume.name : 'Upload Resume'}</Text>
+          <Text style={styles.fileInputText}>
+            {resume ? resume.name : isResume ? resumeFileName || 'Resume Available' : 'Upload Resume'}
+          </Text>
         </TouchableOpacity>
       </View>
     );
@@ -175,16 +195,15 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
         job_id: job.job_id,
       });
       if (response.data.status === 'success') {
-        Alert.alert('Job saved successfully');
+        Alert.alert('Success', 'Job saved successfully');
       } else {
-       Alert.alert('Failed to save job');
+        Alert.alert('Error', 'Failed to save job');
       }
     } catch (error) {
       console.error('Error saving job:', error);
-      Alert.alert('Failed to save job. Please try again.');
+      Alert.alert('Error', 'Failed to save job. Please try again.');
     }
-
-  }
+  };
 
   // Parse qualifications
   const qualifications =
@@ -233,7 +252,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
 
             <View style={styles.jobDetailHeader}>
               <Image
-                source={ { uri: job?.company_logo }}
+                source={{ uri: job?.company_logo }}
                 style={styles.jobDetailImage}
               />
               <View style={styles.jobTitleContainer}>
@@ -381,17 +400,15 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
                   <Ionicons
                     name="mail-outline"
                     size={24}
-                    color={focusedInput === 'email' ? Colors.primary : '#D5D9DF'}
+                    color="#D5D9DF"
                   />
                   <Text>{email}</Text>
                 </View>
-                <View
-                  style={[styles.inputContainer, focusedInput === 'mobile' && styles.focusedInput]}
-                >
+                <View style={[styles.inputContainer]}>
                   <Ionicons
                     name="call-outline"
                     size={24}
-                    color={focusedInput === 'mobile' ? Colors.primary : '#D5D9DF'}
+                    color="#D5D9DF"
                   />
                   <Text>{mobile}</Text>
                 </View>
@@ -404,8 +421,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
                   onPress={handleSubmit}
                 >
                   <Text style={styles.applyButtonText}>
-                    {' '}
-                    {isLoading ? 'Applying...' : 'Apply Job'}{' '}
+                    {isLoading ? 'Applying...' : 'Apply Job'}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -463,6 +479,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
     padding: 10,
+    gap: 20
   },
   jobTitleContainer: {
     flex: 1,

@@ -27,7 +27,10 @@ const BasicDetail = () => {
   const [country, setCountry] = useState(data?.current_country || '');
   const [state, setState] = useState(data?.current_state || '');
   const [city, setCity] = useState(data?.current_city || '');
-  const [mobileNumber, setMobileNumber] = useState(data?.mobile_number || '');
+  const [mobileNumber, setMobileNumber] = useState(
+    data?.mobile_number?.replace(/^(\+91|91)/, '') || ''
+  );
+  
   const [email, setEmail] = useState(data?.email || '');
   const [availability, setAvailability] = useState(data?.availability_to_join || '');
 

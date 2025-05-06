@@ -21,6 +21,8 @@ import axios from 'axios';
 import { API_ENDPOINTS } from '../../api/apiConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { sanitizeData, formatCSV, sanitizeString } from '../../hooks/santize'; 
+
 const AddJob = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -315,52 +317,38 @@ const AddJob = () => {
     }
 
     try {
+      const basePayload = {
+        job_title: sanitizeData(jobTitle),
+        job_description: sanitizeData(jobDescription),
+        job_location: formatCSV(locations),
+        workplace_type: sanitizeData(workplaceType),
+        department: sanitizeData(department),
+        employment_type: sanitizeData(employmentType),
+        receive_applicants_by: 'email',
+        email: sanitizeString(email),
+        job_skills: formatCSV(skills),
+        job_requirments: formatCSV(requirements),
+        min_experience: parseInt(minExperience),
+        max_experience: parseInt(maxExperience),
+        min_salary: parseInt(minSalary) || 0,
+        max_salary: parseInt(maxSalary) || 0,
+        employer_id: parseInt(emp_id),
+        education: formatCSV(selectedEducations),
+        company_id: parseInt(comp_id),
+        status: job_status,
+      };
+  
+      // Add conditional fields
       const payload = job
         ? {
+            ...basePayload,
             job_id: job.job_id,
-            job_title: jobTitle, // string
-            job_description: jobDescription, // string
-            job_location: locations.flat().join(','), // string (comma-separated if multiple)
-            workplace_type: workplaceType, // string
-            department: department, // string
-            employment_type: employmentType, // string
-            receive_applicants_by: 'email', // string
-            email: email, // string
-            job_skills: skills.flat().join(','), // string (comma-separated skills)
-            job_requirments: requirements.flat().join(','), // string
             job_category_id: 1,
-            min_experience: parseInt(minExperience), // integer
-            max_experience: parseInt(maxExperience), // integer
-            min_salary: parseInt(minSalary), // integer
-            max_salary: parseInt(maxSalary), // integer
-            employer_id: parseInt(emp_id),
-            education: selectedEducations.flat().join(','),
-            company_id: parseInt(comp_id),
-            status: job_status,
           }
         : {
-            job_title: jobTitle, // string
-            job_description: jobDescription, // string
-            job_location: locations.flat().join(','), // string (comma-separated if multiple)
-            workplace_type: workplaceType, // string
-            department: department, // string
-            employment_type: employmentType, // string
-            receive_applicants_by: 'email', // string
-            email: email, // string
-            job_skills: skills.flat().join(','), // string (comma-separated skills)
-            job_requirments: requirements.flat().join(','), // string
-            job_category_id: parseInt(selectedCategory), // integer
-            min_experience: parseInt(minExperience), // integer
-            max_experience: parseInt(maxExperience), // integer
-            min_salary: parseInt(minSalary), // integer
-            max_salary: parseInt(maxSalary), // integer
-            employer_id: parseInt(emp_id),
-            education: selectedEducations.flat().join(','),
-            company_id: parseInt(comp_id),
-            status: job_status,
+            ...basePayload,
+            job_category_id: parseInt(selectedCategory),
           };
-
-      console.log('Posting...');
 
       const response = await axios.post(API_ENDPOINTS.JOB_POSTING, payload);
       if (response.data.status === 'success') {
