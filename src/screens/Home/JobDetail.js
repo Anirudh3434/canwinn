@@ -16,6 +16,7 @@ import DocumentPicker from 'react-native-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../../api/apiConfig';
+import RNFS from 'react-native-fs';
 
 const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
   // State variables
@@ -26,7 +27,6 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
   const [mobile, setMobile] = useState('');
   const [resume, setResume] = useState(null);
   const [showApplicationForm, setShowApplicationForm] = useState(false);
-  const [focusedInput, setFocusedInput] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isResume, setIsResume] = useState(false);
   const [resumeFileName, setResumeFileName] = useState('');
@@ -108,22 +108,74 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
       const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.pdf, DocumentPicker.types.doc, DocumentPicker.types.docx],
       });
-      setResume(res[0]);
-      // Set isResume to true since user has now picked a resume
-      setIsResume(true);
+
+      const file = res[0];
+      const filePath = file.uri.replace('file://', '');
+      const base64Data = await RNFS.readFile(filePath, 'base64');
+
+      const blob = {
+        name: file.name,
+        type: file.type,
+        data: base64Data,
+      };
+
+      setResume(blob);
+      uploadDocument(blob, 'R');
     } catch (err) {
       if (DocumentPicker.isCancel(err)) {
-        // User cancelled the picker
+        console.log('User cancelled document picker');
       } else {
         console.error('Error picking document:', err);
       }
     }
   };
 
+  const uploadDocument = async (data, type) => {
+    if (!userId) return;
+    
+    const payload = {
+      user_id: userId,
+      type: type,
+      file_name: data.name,
+      mime_type: data.type,
+      blob_file: data.data,
+    };
+
+    try {
+      const response = await axios.post(API_ENDPOINTS.DOCS, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        timeout: 10000, // Increase timeout for big uploads
+      });
+
+      console.log('Upload response:', response.data);
+      
+      // Update resume status after successful upload
+      if (response.data.status === 'success') {
+        setIsResume(true);
+        setResumeFileName(data.name);
+      }
+    } catch (error) {
+      console.error('Upload failed:', error.response?.data || error.message);
+      Alert.alert('Upload Failed', 'Failed to upload resume. Please try again.');
+    }
+  };
+
   // Form submission
   const handleSubmit = async () => {
+    if (!userId) {
+      Alert.alert('Error', 'User not logged in. Please log in to apply.');
+      return;
+    }
+    
     if (!isResume && !resume) {
       Alert.alert('Resume Required', 'Please upload your resume to apply for this job.');
+      return;
+    }
+    
+    if (!job || !job.job_id) {
+      Alert.alert('Error', 'Job information is missing. Please try again later.');
       return;
     }
     
@@ -135,10 +187,12 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
       });
       
       if (response.data.status === 'success') {
-        Alert.alert('Success', 'Your application has been submitted successfully.');
+
         setShowApplicationForm(false);
         onClose();
-        onSuccess();
+        if (onSuccess && typeof onSuccess === 'function') {
+          onSuccess();
+        }
       } else {
         Alert.alert('Error', response.data.message || 'Failed to submit application');
       }
@@ -176,19 +230,35 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
   };
 
   const shareJob = async () => {
+    if (!job || !job.job_id) {
+      Alert.alert('Error', 'Job information is missing. Cannot share at this time.');
+      return;
+    }
+    
     const jobId = job.job_id;
     const deepLink = `https://canwinn.abacasys.com/job/${jobId}`;
 
     try {
       await Share.share({
-        message: `Check out this job opportunity: ${deepLink}`,
+        message: `Check out this job opportunity: ${job.job_title} at ${job.company_name}\n${deepLink}`,
       });
     } catch (error) {
       console.error('Error sharing job:', error);
+      Alert.alert('Error', 'Failed to share job. Please try again.');
     }
   };
 
   const handleSaveJob = async () => {
+    if (!userId) {
+      Alert.alert('Error', 'Please log in to save jobs.');
+      return;
+    }
+    
+    if (!job || !job.job_id) {
+      Alert.alert('Error', 'Job information is missing. Cannot save at this time.');
+      return;
+    }
+    
     try {
       const response = await axios.post(API_ENDPOINTS.SAVE_JOBS, {
         user_id: userId,
@@ -197,7 +267,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
       if (response.data.status === 'success') {
         Alert.alert('Success', 'Job saved successfully');
       } else {
-        Alert.alert('Error', 'Failed to save job');
+        Alert.alert('Error', response.data.message || 'Failed to save job');
       }
     } catch (error) {
       console.error('Error saving job:', error);
@@ -205,11 +275,37 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
     }
   };
 
-  // Parse qualifications
-  const qualifications =
-    job?.job_requirments && job.job_requirments !== '' ? job.job_requirments.split(',') : [];
+  // Safely parse qualifications and skills
+  const qualifications = 
+    job?.job_requirments && typeof job.job_requirments === 'string' && job.job_requirments !== '' 
+      ? job.job_requirments.split(',') 
+      : [];
 
-  const skills = job?.job_skills && job.job_skills !== '' ? job.job_skills.split(',') : [];
+  const skills = 
+    job?.job_skills && typeof job.job_skills === 'string' && job.job_skills !== '' 
+      ? job.job_skills.split(',') 
+      : [];
+      
+  // Handle education safely
+  const educationItems = 
+    job?.education && typeof job.education === 'string' && job.education !== ''
+      ? job.education.split(',')
+      : [];
+
+  if (!job) {
+    return (
+      <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.formTitle}>Error: Job information not available</Text>
+            <TouchableOpacity style={styles.applyButton} onPress={onClose}>
+              <Text style={styles.applyButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
 
   return (
     <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
@@ -252,13 +348,13 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
 
             <View style={styles.jobDetailHeader}>
               <Image
-                source={{ uri: job?.company_logo }}
+                source={{ uri: job?.company_logo}}
                 style={styles.jobDetailImage}
               />
               <View style={styles.jobTitleContainer}>
-                <Text style={styles.jobCompany}>{job?.company_name || 'Amazon'}</Text>
+                <Text style={styles.jobCompany}>{job?.company_name || 'Company'}</Text>
                 <Text style={styles.jobPosition}>
-                  {job?.job_title || 'Senior Software Engineer'}
+                  {job?.job_title || 'Position'}
                 </Text>
               </View>
             </View>
@@ -277,11 +373,11 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
 
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>
-                  {job?.min_experience}-{job?.max_experience} Years
+                  {job?.min_experience || 0}-{job?.max_experience || 0} Years
                 </Text>
               </View>
 
-              {job?.education.split(',')?.map((item, index) => (
+              {educationItems.map((item, index) => (
                 <View key={index} style={styles.badge}>
                   <Text style={styles.badgeText}>{item.trim()}</Text>
                 </View>
@@ -298,7 +394,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
                   <View style={styles.infoContent}>
                     <Text style={styles.infoLabel}>Salary</Text>
                     <Text style={styles.infoValue}>
-                      {job?.min_salary} - {job?.max_salary} LPA
+                      {job?.min_salary || '0'} - {job?.max_salary || '0'} LPA
                     </Text>
                   </View>
                 </View>
@@ -308,13 +404,13 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
                   </View>
                   <View style={styles.infoContent}>
                     <Text style={styles.infoLabel}>Location</Text>
-                    <Text style={styles.infoValue}>{job?.job_location}</Text>
+                    <Text style={styles.infoValue}>{job?.job_location || 'Not specified'}</Text>
                   </View>
                 </View>
               </View>
 
               <Text style={styles.sectionTitle}>Skills Required</Text>
-              <View style={[styles.requirementsList, { flexDirection: 'row' }]}>
+              <View style={[styles.requirementsList, { flexDirection: 'row', flexWrap: 'wrap' }]}>
                 {skills.length > 0 ? (
                   skills.map((item, index) => (
                     <View key={index} style={styles.skillChip}>
@@ -323,7 +419,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
                     </View>
                   ))
                 ) : (
-                  <Text style={styles.requirementText}>No Skills</Text>
+                  <Text style={styles.requirementText}>No Skills Listed</Text>
                 )}
               </View>
 
@@ -333,7 +429,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
               </Text>
 
               <Text style={styles.sectionTitle}>About Company</Text>
-              <Text style={styles.descriptionText}>{job?.about || 'No description available'}</Text>
+              <Text style={styles.descriptionText}>{job?.about || 'No information available'}</Text>
 
               <Text style={styles.sectionTitle}>Requirements</Text>
               <View style={styles.requirementsList}>
@@ -345,7 +441,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
                     </View>
                   ))
                 ) : (
-                  <Text style={styles.requirementText}>No Requirements</Text>
+                  <Text style={styles.requirementText}>No specific requirements listed</Text>
                 )}
               </View>
 
@@ -394,7 +490,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
                 <FileInput />
                 <View style={[styles.inputContainer]}>
                   <Ionicons name="person-outline" size={24} color="#D5D9DF" />
-                  <Text>{name}</Text>
+                  <Text style={styles.inputText}>{name || 'Not available'}</Text>
                 </View>
                 <View style={[styles.inputContainer]}>
                   <Ionicons
@@ -402,7 +498,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
                     size={24}
                     color="#D5D9DF"
                   />
-                  <Text>{email}</Text>
+                  <Text style={styles.inputText}>{email || 'Not available'}</Text>
                 </View>
                 <View style={[styles.inputContainer]}>
                   <Ionicons
@@ -410,7 +506,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
                     size={24}
                     color="#D5D9DF"
                   />
-                  <Text>{mobile}</Text>
+                  <Text style={styles.inputText}>{mobile || 'Not available'}</Text>
                 </View>
               </View>
 
@@ -438,9 +534,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
-  },
-  focusedInput: {
-    borderColor: Colors.primary,
   },
   modalContainer: {
     backgroundColor: 'white',
@@ -470,6 +563,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 50,
     marginRight: 15,
+    backgroundColor: '#F6F6F6',
   },
   AlertContainer: {
     justifyContent: 'center',
@@ -540,9 +634,9 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 20,
     marginRight: 5,
+    marginBottom: 5,
     backgroundColor: '#DFFAF6',
   },
-
   skillText: {
     fontSize: 12,
     fontFamily: 'Poppins-Regular',
@@ -636,12 +730,10 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     gap: 10,
   },
-  input: {
+  inputText: {
     fontSize: 16,
-    height: '100%',
-    marginLeft: 10,
-    width: '90%',
-    backgroundColor: 'transparent',
+    fontFamily: 'Poppins-Regular',
+    color: '#424242',
   },
   fileInput: {
     flexDirection: 'row',
@@ -683,6 +775,9 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
     flex: 2,
+  },
+  closeButton: {
+    padding: 5,
   },
 });
 
