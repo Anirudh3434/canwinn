@@ -399,27 +399,31 @@ export default function Profile() {
   
     const translateY = useRef(new Animated.Value(0)).current;
     
-    const panResponder = useRef(
-      PanResponder.create({
-        onMoveShouldSetPanResponder: (_, gestureState) =>
-          gestureState.dy > 5 || gestureState.dy < -5,
-        onPanResponderMove: Animated.event([null, { dy: translateY }], { useNativeDriver: false }),
-        onPanResponderRelease: (_, gestureState) => {
-          if (gestureState.dy > 100) {
-            Animated.timing(translateY, {
-              toValue: height,
-              duration: 300,
-              useNativeDriver: false,
-            }).start(onClose);
-          } else {
-            Animated.spring(translateY, {
-              toValue: 0,
-              useNativeDriver: false,
-            }).start();
-          }
-        },
-      })
-    ).current;
+   
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) =>
+        gestureState.dy > 5, // only respond to downward swipes
+      onPanResponderMove: Animated.event([null, { dy: translateY }], {
+        useNativeDriver: false,
+      }),
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 100) {
+          Animated.timing(translateY, {
+            toValue: height,
+            duration: 300,
+            useNativeDriver: false,
+          }).start(onClose);
+        } else {
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: false,
+          }).start();
+        }
+      },
+    })
+  ).current;
   
     const handleSelect = (option) => {
       setSelectedOption(option);
@@ -438,7 +442,7 @@ export default function Profile() {
           styles.VideoPop, 
           { 
             transform: [{ translateY }],
-            height: height - 200,
+            height: height - 150,
             gap: 15,
             paddingHorizontal: 30
           }
@@ -1197,8 +1201,8 @@ export default function Profile() {
                   ))}
                 </View>
               ) : (
-                <View style={{ alignItems: 'center', padding: 10 }}>
-                  <Text style={[style.r12, { color: '#666', textAlign: 'center' }]}>
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={[style.r12, { color: '#666', textAlign: 'left' }]}>
                     Add your skills to highlight your expertise
                   </Text>
                 </View>
@@ -1276,11 +1280,11 @@ export default function Profile() {
                   ))}
                 </View>
               ) : (
-                <View style={{ alignItems: 'center', padding: 10 }}>
-                  <Text style={[style.r12, { color: '#666', textAlign: 'center' }]}>
-                    No employment details added yet. Click "Add" to showcase your work experience.
-                  </Text>
-                </View>
+                <View style={{ alignItems: 'center' }}>
+                <Text style={[style.r12, { color: '#666', textAlign: 'left' }]}>
+                  No experience added yet. Click "Add" to showcase your work experience.
+                </Text>
+              </View>
               )}
             </View>
             {/* Project Details */}
@@ -1359,9 +1363,9 @@ export default function Profile() {
                   ))}
                 </View>
               ) : (
-                <View style={{ alignItems: 'center', padding: 10 }}>
-                  <Text style={[style.r12, { color: '#666', textAlign: 'center' }]}>
-                    No projects added yet. Click "Add" to showcase your work experience.
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={[style.r12, { color: '#666', textAlign: 'left' }]}>
+                    No projects added yet. Click "Add" to showcase your skills
                   </Text>
                 </View>
               )}
