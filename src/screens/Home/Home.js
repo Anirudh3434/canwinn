@@ -408,7 +408,7 @@ export default function  Home() {
                                     ? job.job_title.slice(0, 20) + '...'
                                     : job.job_title}
                                 </Text>
-                                <Text>{job.company_name}</Text>
+                                <Text>{job.company_name.toLowerCase()}</Text>
                               </View>
 
                               <View style={styles.jobCardLocation}>

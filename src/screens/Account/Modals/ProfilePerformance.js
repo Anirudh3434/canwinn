@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, BackHandler } from 'react-native';
 // Import vector icons from react-native-vector-icons instead of Expo
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -39,6 +39,19 @@ const ProfilePerformance = () => {
       timeAgo: '1d ago',
     },
   ];
+
+     const backAction = () => {
+       if (navigation.isFocused()) {
+         navigation.navigate('MyTabs');
+         return true;
+       }
+     };
+   
+     useEffect(() => {
+       const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+   
+       return () => backHandler.remove();
+     }, [navigation]);
 
   return (
     <ScrollView style={styles.container}>

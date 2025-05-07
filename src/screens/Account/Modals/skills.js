@@ -28,20 +28,18 @@ const SkillMenu = () => {
   const [skillValues, setSkillValues] = useState([]);
   const [skillLabels, setSkillLabels] = useState([]);
 
-  const [open, setOpen] = useState(false);
+  const [skillOpen, setSkillOpen] = useState(false);
   const [selectedSkill, setSelectedSkill] = useState(null);
-  const [dropdownItems, setDropdownItems] = useState([]);
+  const [skillList, setSkillList] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const navigation = useNavigation();
-
-  console.log(data);
 
   useEffect(() => {
     const fetchUserId = async () => {
       try {
         const storedUserId = await AsyncStorage.getItem('userId');
-        if (storedUserId) setUserId(parseInt(storedUserId, 10)); // Parse to number
+        if (storedUserId) setUserId(parseInt(storedUserId, 10));
       } catch (error) {
         console.error('Error fetching user ID:', error);
       }
@@ -59,43 +57,49 @@ const SkillMenu = () => {
         value: item.skill_id,
       }));
 
-      setDropdownItems(skillList);
+      setSkillList(skillList);
     } catch (error) {
       console.error('Error fetching skills:', error);
       Alert.alert('Error', 'Failed to fetch skills. Please check your network connection.');
     }
   };
+
   useEffect(() => {
-    if (dropdownItems.length > 0 && Array.isArray(data)) {
-      // Check if dropdownItems is populated
+    if (skillList.length > 0 && Array.isArray(data)) {
       const initialSkills = data
         .map((label) => {
           const trimmedLabel = label.trim().toLowerCase();
-          const match = dropdownItems.find(
+          const match = skillList.find(
             (item) => item.label.trim().toLowerCase() === trimmedLabel
           );
           return match ? { label: match.label, value: match.value } : null;
         })
-        .filter((skill) => skill !== null); // Remove null values
+        .filter((skill) => skill !== null);
 
       setSkillValues(initialSkills.map((skill) => skill.value));
       setSkillLabels(initialSkills.map((skill) => skill.label));
     }
-  }, [dropdownItems, data]);
+  }, [skillList, data]);
 
   useEffect(() => {
     if (user_id) fetchSkills();
   }, [user_id]);
 
+  const handleOpenDropdown = (dropdownName) => {
+    if (dropdownName === 'skill') {
+      setSkillOpen(true);
+    }
+  };
+
   const handleAddSkill = () => {
     if (selectedSkill) {
-      const selectedSkillObj = dropdownItems.find((item) => item.value === selectedSkill);
+      const selectedSkillObj = skillList.find((item) => item.value === selectedSkill);
       if (selectedSkillObj && !skillValues.includes(selectedSkillObj.value)) {
         setSkillValues((prev) => [...prev, selectedSkillObj.value]);
         setSkillLabels((prev) => [...prev, selectedSkillObj.label]);
       }
       setSelectedSkill(null);
-      setOpen(false);
+      setSkillOpen(false);
     }
   };
 
@@ -123,7 +127,7 @@ const SkillMenu = () => {
         navigation.navigate(req === 'ResumeLocal' ? 'Resume Form' : 'MyTabs');
       } else {
         setLoading(false);
-        Alert.alert('Error', 'Failed to save skills: ' + response.data.message); // Show server message
+        Alert.alert('Error', 'Failed to save skills: ' + response.data.message);
       }
     } catch (error) {
       setLoading(false);
@@ -135,7 +139,7 @@ const SkillMenu = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-       <View style={[styles.header, { marginTop: req === 'ResumeLocal' ? 40 : 0 }]}>
+      <View style={[styles.header, { marginTop: req === 'ResumeLocal' ? 40 : 0 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
@@ -151,30 +155,28 @@ const SkillMenu = () => {
 
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <View style={styles.dropdownContainer}>
-            <DropDownPicker
-    
-          searchable  ={true}
-          listMode="SCROLLVIEW"
-          scrollViewProps={{ nestedScrollEnabled: true }}
-          open={skillOpen}
-          setOpen={(open) => {
-            if (open) handleOpenDropdown('skill');
-            else setSkillOpen(false);
-          }}
-          value={selectedSkill}
-          setValue={setSelectedSkill}
-          items={skillList}
-          placeholder="Select Skill"
-          style={[styles.dropdownInput]}
-          dropDownContainerStyle={[styles.dropdownContainer, { maxHeight: 200 }]}
-          zIndex={2000}
-          zIndexInverse={3000}
-        />
-
+              <DropDownPicker
+                searchable={true}
+                listMode="SCROLLVIEW"
+                scrollViewProps={{ nestedScrollEnabled: true }}
+                open={skillOpen}
+                setOpen={(open) => {
+                  if (open) handleOpenDropdown('skill');
+                  else setSkillOpen(false);
+                }}
+                value={selectedSkill}
+                setValue={setSelectedSkill}
+                items={skillList}
+                placeholder="Select Skill"
+                style={styles.dropdown}
+                dropDownContainerStyle={[styles.dropdownList, { maxHeight: 200 }]}
+                zIndex={2000}
+                zIndexInverse={3000}
+              />
             </View>
 
             <TouchableOpacity
-              style={[styles.addButton]}
+              style={styles.addButton}
               onPress={handleAddSkill}
               disabled={!selectedSkill}
             >

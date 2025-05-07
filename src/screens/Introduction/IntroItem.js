@@ -85,6 +85,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
+    marginBottom: 100
   },
   largeCircle: {
     backgroundColor: '#F5FBF6',
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   image: {
-    width: width / 1.5,
+    width: width / 1.6,
     height: height / 3,
     resizeMode: 'contain',
     zIndex: 3,
@@ -113,6 +114,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 60,
     borderTopLeftRadius: 60,
     marginBottom: 10,
+    paddingHorizontal: 30
   },
   title: {
     width: 300,

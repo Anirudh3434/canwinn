@@ -37,8 +37,8 @@ export default function Introduction() {
   const [isAnimating, setIsAnimating] = useState(false);
 
   // Create animated values for circle sizes and z-indices
-  const largeCircleSize = useRef(new Animated.Value(700)).current;
-  const smallCircleSize = useRef(new Animated.Value(600)).current;
+  const largeCircleSize = useRef(new Animated.Value(900)).current;
+  const smallCircleSize = useRef(new Animated.Value(400)).current;
   const largeCircleZIndex = useRef(new Animated.Value(1)).current;
   const smallCircleZIndex = useRef(new Animated.Value(2)).current;
 
@@ -201,6 +201,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bg,
   },
   footer: {
+   
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -209,6 +210,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bg,
   },
   indicators: {
+    
+    marginTop: 10,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',

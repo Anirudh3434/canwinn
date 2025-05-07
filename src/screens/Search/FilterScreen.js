@@ -151,9 +151,11 @@ function FilterScreen({ data, SearchFilterData, filterVisible, index }) {
                     {item}
                   </Text>
                   {/* Show indicator if this heading has selected filters */}
-                  {filterData[item] && filterData[item].length > 0 && (
-                    <View style={styles.selectedIndicator} />
-                  )}
+                  {filterData[item] && filterData[item].length > 0 ? (
+  <View style={styles.selectedIndicator} />
+) : (
+  <View style={{ width: 8, height: 8 , marginRight: 10 }} />
+)}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -234,7 +236,7 @@ const styles = StyleSheet.create({
   },
   headingButton: {
     paddingVertical: 10,
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
@@ -252,7 +254,7 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: Colors.primary,
-    marginLeft: 5,
+    marginRight: 10,
   },
   optionButton: {
     paddingVertical: 10,
@@ -267,11 +269,12 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   buttonContainer: {
+    width: '100%',
     alignItems: 'center',
     paddingBottom: 20,
   },
   applyButton: {
-    width: 300,
+    width: '90%',
     padding: 12,
     borderRadius: 5,
     backgroundColor: Colors.primary,
@@ -295,7 +298,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Regular',
   },
   cancelButton: {
-    width: 300,
+    width: '90%',
     padding: 12,
     borderRadius: 5,
     borderWidth: 1,

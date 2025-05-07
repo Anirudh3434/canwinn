@@ -361,7 +361,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
 
             <ScrollView
               style={styles.badgeContainer}
-              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
               horizontal={true}
             >
               <View style={styles.badge}>
