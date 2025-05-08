@@ -46,6 +46,7 @@ const CompanyDetails = () => {
   // Validation states
 
   const [userId, setUserId] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const getUserId = async () => {
@@ -140,6 +141,8 @@ const CompanyDetails = () => {
       console.error('Upload failed:', error);
     }
   };
+
+  console.log('company', companyLogo)
 
   useEffect(() => {
     const backAction = () => {
@@ -286,10 +289,11 @@ const CompanyDetails = () => {
                 borderRadius: 5,
                 alignItems: 'center',
                 justifyContent: 'center',
+              
               }}
             >
               <Image
-                source={{ uri: companyLogo.uri }}
+                source={{ uri: companyLogo }}
                 style={{ width: 150, height: 150, borderRadius: 100 }}
               />
             </View>
@@ -487,6 +491,7 @@ const styles = StyleSheet.create({
   header: {
     paddingVertical: 10,
     paddingHorizontal: 16,
+    marginTop: 50,
   },
   backButton: {
     padding: 8,

@@ -264,7 +264,7 @@ export default function  Home() {
                     <Image
                       style={styles.cardImage}
                       source={
-                        docs
+                        docs.pp_url = '' 
                           ? { uri: docs.pp_url }
                           : require('../../../assets/image/profileIcon.png')
                       }

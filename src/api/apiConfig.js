@@ -33,6 +33,7 @@ const API_ENDPOINTS = {
   //Company API
   EMPLOYER: `${BASE_URL}/employers`,
   COMPANY_DETAILS: `${BASE_URL}/company-detail`,
+  VERIFY_DOCS : `${BASE_URL}/verification-docs`,
   JOB_POSTING: `${BASE_URL}/jobs`,
   JOBS: `${BASE_URL}/jobs`,
   JOB_APPLY: `${BASE_URL}/apply_job`,

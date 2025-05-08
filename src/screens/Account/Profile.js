@@ -1280,7 +1280,7 @@ export default function Profile() {
                   ))}
                 </View>
               ) : (
-                <View style={{ alignItems: 'center' }}>
+                <View style={{ }}>
                 <Text style={[style.r12, { color: '#666', textAlign: 'left' }]}>
                   No experience added yet. Click "Add" to showcase your work experience.
                 </Text>
@@ -1363,7 +1363,7 @@ export default function Profile() {
                   ))}
                 </View>
               ) : (
-                <View style={{ alignItems: 'center' }}>
+                <View style={{ }}>
                   <Text style={[style.r12, { color: '#666', textAlign: 'left' }]}>
                     No projects added yet. Click "Add" to showcase your skills
                   </Text>
@@ -1438,7 +1438,11 @@ export default function Profile() {
                   </TouchableOpacity>
                 ))
               ) : (
-                <Text>No Education Added</Text>
+                <View style={{ }}>
+                  <Text style={[style.r12, { color: '#666', textAlign: 'left' }]}>
+                    No Education details added yet. Click "Add" to showcase your qualifications.
+                  </Text>
+                </View>
               )}
             </View>
             {/* Personal Details */}
@@ -1601,7 +1605,9 @@ export default function Profile() {
                   <View style={{ marginBottom: 12 }}>
                     <Text style={[style.r11, { color: '#888' }]}>Preferred Location</Text>
                     <Text style={[style.m12, { color: '#333' }]}>
-                      {profileDetail?.careerPreference?.prefered_location || 'Not specified'}
+                    {(profileDetail?.careerPreference?.prefered_location?.length > 30
+  ? profileDetail.careerPreference.prefered_location.slice(0, 30) + '...'
+  : profileDetail?.careerPreference?.prefered_location) || 'Not specified'}
                     </Text>
                   </View>
 

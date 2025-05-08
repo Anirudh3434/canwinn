@@ -23,6 +23,9 @@ const CompanyDetails = () => {
 
   const company = data?.data || {};
 
+
+  console.log('Company Details:', company);
+
   const [email, setEmail] = useState(company?.company_email || '');
   const [website, setWebsite] = useState(company?.company_website || '');
   const [founded, setFounded] = useState(company?.founded_year?.toString() || ''); // Ensure string
@@ -51,26 +54,7 @@ const CompanyDetails = () => {
     setIndustry(company?.industry || '');
   }, [company]);
 
-  const payload = {
-    company_id: parseInt(company?.company_id ?? 0, 10),
-    company_type: company?.company_type ?? '',
-    company_logo: company?.company_logo ?? '',
-    company_name: company?.company_name ?? '',
-    industry: industry ?? '',
-    city: company?.city ?? '',
-    company_address: company?.company_address ?? '',
-    company_email: email ?? '',
-    company_website: website ?? '',
-    about: company?.about ?? '',
-    hr_email: company?.hr_email ?? '',
-    company_gstin: company?.company_gstin ?? '',
-    verified_status: company?.verified_status ?? 'N',
-    no_of_employees: parseInt(employee ?? 0, 10),
-    country: parseInt(company?.country ?? 0, 10),
-    state: parseInt(company?.state ?? 0, 10),
-    pincode: parseInt(company?.pincode ?? 0, 10),
-    founded_year: parseInt(founded ?? 0, 10),
-  };
+  
 
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -78,6 +62,29 @@ const CompanyDetails = () => {
   };
 
   const handleSave = async () => {
+    const payload = {
+      company_id: parseInt(company?.company_id ?? 0, 10),
+      company_type: company?.company_type ?? '',
+      company_logo: company?.company_logo ?? '',
+      company_name: company?.company_name ?? '',
+      industry: industry ?? '',
+      city: company?.city ?? '',
+      company_address: company?.company_address ?? '',
+      company_email: email ?? '',
+      company_website: website ?? '',
+      about: company?.about ?? '',
+      hr_email: company?.hr_email ?? '',
+      company_gstin: company?.company_gstin ?? '',
+      verified_status: company?.verified_status ?? 'N',
+      no_of_employees: parseInt(employee ?? 0, 10),
+      country: parseInt(company?.country ?? 0, 10),
+      state: parseInt(company?.state ?? 0, 10),
+      pincode: parseInt(company?.pincode ?? 0, 10),
+      founded_year: parseInt(founded ?? 0, 10),
+    };
+
+    console.log('Payload:', payload);
+
     try {
       setLoading(true);
       const response = await axios.post(API_ENDPOINTS.COMPANY_DETAILS, payload);
