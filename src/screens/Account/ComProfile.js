@@ -124,6 +124,7 @@ export default function ComProfile() {
 
   const fetchCompanyDetails = async () => {
     try {
+      
       const response = await axios.get(API_ENDPOINTS.COMPANY_DETAILS, {
         params: { user_id: userId },
       });
@@ -505,7 +506,7 @@ export default function ComProfile() {
                   />
                 </TouchableOpacity>
               </View>
-              <Text style={[style.r14, { color: '#666' }]}>
+              <Text style={[style.r12, { color: '#666' }]}>
                 {data?.data?.about || 'Company description is not available.'}
               </Text>
             </View>
@@ -541,7 +542,7 @@ export default function ComProfile() {
       </View>
     ))
 ) : (
-  <Text style={[style.r14, { color: '#666' }]}>No Allowances Added</Text>
+  <Text style={[style.r12, { color: '#666' }]}>No Allowances Added</Text>
 )}
             </View>
 

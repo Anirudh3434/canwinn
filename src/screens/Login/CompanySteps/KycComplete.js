@@ -122,6 +122,7 @@ const KycDocumentForm = ({ navigation }) => {
   const [isUploading, setIsUploading] = useState(false)
 
 
+  console.log("Company Data:", companyData)
 
 
   // Updated file storage structure
@@ -150,6 +151,17 @@ const KycDocumentForm = ({ navigation }) => {
       isMounted.current = false
     }
   }, [])
+
+  const sanitize = (input) => {
+    if (typeof input !== 'string') return input;
+  
+    return input
+      .replace(/['"`\\]/g, '')     // Remove quotes and backslashes
+      .replace(/[<>]/g, '')        // Remove angle brackets
+      .replace(/[;]/g, '')         // Remove semicolons
+      .trim();                     // Remove leading/trailing spaces
+  };
+
 
 
 
@@ -472,7 +484,7 @@ const KycDocumentForm = ({ navigation }) => {
     try {
       const companyPayload = {
         ...companyData,
-        company_gstin: gstNumber,
+        company_gstin: sanitize(gstNumber),
       };
 
       console.log("Company Payload:", companyPayload);

@@ -63,8 +63,8 @@ const JobCard = ({ job, onRepost, onDelete, onEdit, onMenu, home }) => {
             <Text style={styles.jobLocation}>
   {job ? 
     ((job.location || job.JOB_LOCATION) ? 
-      ((job.location || job.JOB_LOCATION).length > 40 ? 
-        (job.location || job.JOB_LOCATION).slice(0, 40) + '...' : 
+      ((job.location || job.JOB_LOCATION).length > 30 ? 
+        (job.location || job.JOB_LOCATION).slice(0,30) + '...' : 
         (job.location || job.JOB_LOCATION)) : 
       'Location not specified') : 
     'Location not specified'}

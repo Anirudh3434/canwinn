@@ -46,7 +46,7 @@ export default function Apply() {
               Search for jobs and start applying. You can track your applications here!
             </Text>
 
-            <TouchableOpacity style={styles.botton}>
+            <TouchableOpacity onPress={()=>navigation.navigate('Search')} style={styles.botton}>
               <Text style={styles.buttonText}>Start my job search</Text>
             </TouchableOpacity>
           </View>

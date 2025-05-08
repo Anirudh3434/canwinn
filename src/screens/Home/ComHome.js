@@ -123,7 +123,7 @@ export default function ComHome() {
                   style={{ width: 25, height: 25, objectFit: 'contain' }}
                   source={require('../../../assets/image/notification.png')}
                 />
-                <ProfileImageFallback press={handlePress} fullname={name} size={40} fontSize={20} />
+                
               </View>
             }
           />

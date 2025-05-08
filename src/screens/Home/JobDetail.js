@@ -264,8 +264,12 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
         user_id: userId,
         job_id: job.job_id,
       });
-      if (response.data.status === 'success') {
+
+      console.log('Save job response:', response.data);
+      if (response.data.status === 'success' && response.data.message === 'Data inserted successfully') {
         Alert.alert('Success', 'Job saved successfully');
+      } else if (response.data.message === 'You have already saved this job') {
+        Alert.alert('Info', 'Job already saved');
       } else {
         Alert.alert('Error', response.data.message || 'Failed to save job');
       }

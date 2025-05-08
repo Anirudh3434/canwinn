@@ -349,10 +349,9 @@ const renderFilterBadge = (label, tabIndex) => {
     { label: 'Work Type', index: 4 },
     { label: 'Department', index: 5 },
     { label: 'Company Size', index: 6 },
-    { label: 'Role', index: 7 },
-    { label: 'Stipend', index: 8 },
-    { label: 'Education', index: 9 },
-    { label: 'Posted By', index: 10 },
+    { label: 'Stipend', index: 7 },
+    { label: 'Education', index: 8 },
+    { label: 'Posted By', index: 9},
   ];
 
   const renderEmptyList = () => (

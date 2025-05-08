@@ -213,6 +213,9 @@ const ManageJob = () => {
   };
   
   const renderItem = ({ item, index }) => {
+    const isLastItem = index === applications.length - 1 && applications.length !== 1;
+
+  
     return (
       <View>
         <JobCard
@@ -222,9 +225,9 @@ const ManageJob = () => {
           onDelete={() => handleDelete(item)}
           onRepost={() => handleRepost(item)}
         />
-        
+  
         {menuVisibleForJobId === (item.job_id || index) && (
-          <View style={styles.menu}>
+          <View style={[styles.menu, isLastItem && styles.menuShiftUp]}>
             <TouchableOpacity
               onPress={() => {
                 setMenuVisibleForJobId(null);
@@ -234,7 +237,7 @@ const ManageJob = () => {
             >
               <Text style={styles.menuItemText}>Re-Post</Text>
             </TouchableOpacity>
-            
+  
             <TouchableOpacity
               onPress={() => {
                 setMenuVisibleForJobId(null);
@@ -244,7 +247,7 @@ const ManageJob = () => {
             >
               <Text style={styles.menuItemText}>Edit</Text>
             </TouchableOpacity>
-            
+  
             <TouchableOpacity
               onPress={() => {
                 setMenuVisibleForJobId(null);
@@ -259,6 +262,7 @@ const ManageJob = () => {
       </View>
     );
   };
+  
   
   return (
     <View style={style.area}>
@@ -353,11 +357,18 @@ const ManageJob = () => {
           <Text style={{ color: 'red' }}>{error}</Text>
         ) : (
           <FlatList
-            data={applications}
-            renderItem={renderItem}
-            keyExtractor={(item, index) => (item.job_id || index.toString())}
-            ListEmptyComponent={<Text>No job postings found</Text>}
-          />
+  showsVerticalScrollIndicator={false}        
+  data={applications}
+  renderItem={renderItem}
+  keyExtractor={(item, index) => item?.job_id?.toString() || index.toString()}
+  style={{ flex: 1, paddingBottom: 40 }}
+  ListEmptyComponent={
+    <Text style={{ textAlign: 'center', marginTop: 20 }}>
+      No job postings found
+    </Text>
+  }
+/>
+
         )}
       </View>
     </View>
@@ -442,5 +453,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     zIndex: 5,
+  },
+  menuShiftUp: {
+    top: -120
   },
 });

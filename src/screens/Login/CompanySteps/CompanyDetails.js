@@ -49,6 +49,16 @@ const CompanyDetails = () => {
   const [userId, setUserId] = useState(null);
   const [error, setError] = useState(null);
 
+  const sanitize = (input) => {
+    if (typeof input !== 'string') return input;
+  
+    return input
+      .replace(/['"`\\]/g, '')     // Remove quotes and backslashes
+      .replace(/[<>]/g, '')        // Remove angle brackets
+      .replace(/[;]/g, '')         // Remove semicolons
+      .trim();                     // Remove leading/trailing spaces
+  };
+
   useEffect(() => {
     const getUserId = async () => {
       try {
@@ -228,16 +238,16 @@ const CompanyDetails = () => {
     }
 
     const data = {
-      company_logo: companyLogo, // This should now be the ID or URL from the server
-      company_type: accountType,
-      company_name: companyName,
-      industry: industryValue,
+      company_logo: companyLogo,
+      company_type: sanitize(accountType),
+      company_name: sanitize(companyName),
+      industry: sanitize(industryValue),
       no_of_employees: parseInt(noOfEmployees) || 0,
       country: countryId,
       state: stateId,
-      city: city,
-      pincode: pincode,
-      company_address: companyAddress,
+      city: sanitize(city),
+      pincode: sanitize(pincode),
+      company_address: sanitize(companyAddress),
     };
 
     dispatch(setCompanyDetails(data));
