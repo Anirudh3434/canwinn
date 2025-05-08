@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  StyleSheet,
   Text,
   View,
   TouchableOpacity,
@@ -11,6 +10,7 @@ import {
   ScrollView,
   Image,
   BackHandler,
+  StyleSheet,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -33,6 +33,7 @@ const CompanyDetails = () => {
   // State variables matching the JSON structure
   const [accountType, setAccountType] = useState('company');
   const [companyLogo, setCompanyLogo] = useState('');
+  const [logoUri, setLogoUri] = useState(''); // Add this new state for the image URI
   const [companyName, setCompanyName] = useState('');
   const [industry, setIndustry] = useState('');
   const [noOfEmployees, setNoOfEmployees] = useState('');
@@ -42,9 +43,9 @@ const CompanyDetails = () => {
   const [city, setCity] = useState('');
   const [pincode, setPincode] = useState('');
   const [companyAddress, setCompanyAddress] = useState('');
+  const [loading, setLoading] = useState(false); // Add loading state
 
   // Validation states
-
   const [userId, setUserId] = useState(null);
   const [error, setError] = useState(null);
 
@@ -62,7 +63,7 @@ const CompanyDetails = () => {
       }
     };
     getUserId();
-  }, [userId]);
+  }, []);
 
   const [errors, setErrors] = useState({
     accountType: false,
@@ -105,6 +106,9 @@ const CompanyDetails = () => {
       cropperCircleOverlay: true,
     })
       .then(async (image) => {
+        // Set the image URI for display immediately
+        setLogoUri(image.path);
+        
         const base64Data = await RNFS.readFile(image.path, 'base64');
         const blob = {
           name: image.filename || 'company.jpg',
@@ -113,7 +117,7 @@ const CompanyDetails = () => {
           data: base64Data,
         };
 
-        setCompanyLogo(blob);
+        // Upload the image
         uploadDocument(blob, 'CL');
       })
       .catch((error) => {
@@ -122,6 +126,7 @@ const CompanyDetails = () => {
   };
 
   const uploadDocument = async (data, type) => {
+    setLoading(true);
     const payload = {
       user_id: userId,
       type: type,
@@ -134,15 +139,22 @@ const CompanyDetails = () => {
 
     try {
       const response = await axios.post(API_ENDPOINTS.DOCS, payload);
-      console.log(response.data);
-      setCompanyLogo(response?.data?.company_logo);
-      console.log('Upload successful:', response.data);
+      console.log('Upload response:', response.data);
+      
+      // Store the server response as the company logo reference
+      if (response?.data?.company_logo) {
+        setCompanyLogo(response.data.company_logo);
+        console.log('Upload successful:', response.data.company_logo);
+      } else {
+        console.error('No company_logo in response:', response.data);
+      }
     } catch (error) {
       console.error('Upload failed:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
-
-  console.log('company', companyLogo)
 
   useEffect(() => {
     const backAction = () => {
@@ -216,7 +228,7 @@ const CompanyDetails = () => {
     }
 
     const data = {
-      company_logo: companyLogo,
+      company_logo: companyLogo, // This should now be the ID or URL from the server
       company_type: accountType,
       company_name: companyName,
       industry: industryValue,
@@ -235,31 +247,38 @@ const CompanyDetails = () => {
   return (
     <SafeAreaView style={style.area}>
       <KeyboardAvoidingView
-        style={styles.container}
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.header}>
+        <View style={{ paddingVertical: 10, paddingHorizontal: 16, marginTop: 50 }}>
           
         </View>
         <ScrollView
-          contentContainerStyle={styles.scrollContainer}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.title}>Company details</Text>
+          <Text style={{ fontSize: 30, fontFamily: 'Poppins-SemiBold', marginBottom: 4, textAlign: 'center', width: '100%' }}>
+            Company details
+          </Text>
 
-          <Text style={styles.accountTypeLabel}>You're creating account as a:</Text>
-          <View style={styles.radioContainer}>
-            <TouchableOpacity style={styles.radioOption} onPress={() => setAccountType('company')}>
+          <Text style={{ color: '#9F9F9F', marginTop: 30, marginBottom: 5, marginLeft: 8 }}>
+            You're creating account as a:
+          </Text>
+          <View style={{ flexDirection: 'row', marginBottom: 20 }}>
+            <TouchableOpacity 
+              style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }} 
+              onPress={() => setAccountType('company')}
+            >
               <RadioButton
                 value="company"
                 status={accountType === 'company' ? 'checked' : 'unchecked'}
                 onPress={() => setAccountType('company')}
                 color="#14B6AA"
               />
-              <Text style={styles.radioText}>Your Company</Text>
+              <Text style={{ fontSize: 16 }}>Your Company</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.radioOption}
+              style={{ flexDirection: 'row', alignItems: 'center', marginRight: 20 }}
               onPress={() => setAccountType('consultancy')}
             >
               <RadioButton
@@ -268,20 +287,33 @@ const CompanyDetails = () => {
                 onPress={() => setAccountType('consultancy')}
                 color="#14B6AA"
               />
-              <Text style={styles.radioText}>a Consultancy</Text>
+              <Text style={{ fontSize: 16 }}>a Consultancy</Text>
             </TouchableOpacity>
           </View>
 
-          {!companyLogo && (
-            <TouchableOpacity style={styles.uploadLogo} onPress={pickImage}>
-              <View style={styles.uploadLogoIcon}>
+          {!logoUri ? (
+            <TouchableOpacity 
+              style={{ 
+                height: 150, 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                borderWidth: 1,
+                borderColor: '#DBDBDB',
+                borderRadius: 10,
+                paddingVertical: 20,
+                marginBottom: 20,
+              }} 
+              onPress={pickImage}
+              disabled={loading}
+            >
+              <View style={{ backgroundColor: '#F7F7F7', borderRadius: 50, padding: 10 }}>
                 <Ionicons name="cloud-upload-outline" size={30} color="#ADADAD" />
               </View>
-              <Text style={styles.uploadText}>Upload Company logo</Text>
+              <Text style={{ fontFamily: 'Poppins-Regular', marginLeft: 10, fontSize: 14, color: 'gray', marginTop: 10 }}>
+                {loading ? 'Uploading...' : 'Upload Company logo'}
+              </Text>
             </TouchableOpacity>
-          )}
-
-          {companyLogo && (
+          ) : (
             <View
               style={{
                 width: '100%',
@@ -289,32 +321,42 @@ const CompanyDetails = () => {
                 borderRadius: 5,
                 alignItems: 'center',
                 justifyContent: 'center',
-              
+                marginBottom: 20,
               }}
             >
               <Image
-                source={{ uri: companyLogo }}
+                source={{ uri: logoUri }}
                 style={{ width: 150, height: 150, borderRadius: 100 }}
               />
+              {loading && (
+                <Text style={{ marginTop: 10, color: Colors.primary }}>Uploading...</Text>
+              )}
             </View>
           )}
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Company</Text>
+          <View style={{ width: '100%', marginTop: 20 }}>
+            <Text style={{ fontSize: 16, marginBottom: 8 }}>Company</Text>
             <TextInput
               value={companyName}
               onChangeText={(text) => {
                 setCompanyName(text);
                 setErrors({ ...errors, companyName: false });
               }}
-              style={[styles.input, errors.companyName && styles.inputError]}
+              style={{ 
+                borderWidth: 1, 
+                borderColor: errors.companyName ? 'red' : '#E0E0E0', 
+                borderRadius: 8, 
+                paddingHorizontal: 12, 
+                paddingVertical: 17, 
+                marginBottom: 16 
+              }}
               placeholder="Enter Company Name"
             />
-            {errors.companyName && <Text style={styles.errorText}>Company name is required</Text>}
+            {errors.companyName && <Text style={{ color: 'red', fontSize: 12, marginTop: -10, marginBottom: 8 }}>Company name is required</Text>}
           </View>
 
-          <View style={[styles.inputContainer, { zIndex: 5000 }]}>
-            <Text style={styles.label}>Select Industry</Text>
+          <View style={{ width: '100%', marginTop: 20, zIndex: 5000 }}>
+            <Text style={{ fontSize: 16, marginBottom: 8 }}>Select Industry</Text>
             <DropDownPicker
               listMode="SCROLLVIEW"
               scrollViewProps={{ nestedScrollEnabled: true }}
@@ -328,40 +370,57 @@ const CompanyDetails = () => {
               }}
               setItems={setIndustryItems}
               placeholder="Select Industry"
-              style={[styles.dropdown, errors.industry && styles.dropdownError]}
-              dropDownContainerStyle={styles.dropdownContainer}
+              style={{ 
+                borderColor: errors.industry ? 'red' : '#E0E0E0',
+                borderRadius: 8,
+              }}
+              dropDownContainerStyle={{ borderColor: '#E0E0E0' }}
               zIndex={5000}
               zIndexInverse={1000}
               onChangeValue={setIndustry}
             />
             {errors.industry && (
-              <Text style={[styles.errorText, { marginTop: 5 }]}>Industry is required</Text>
+              <Text style={{ color: 'red', fontSize: 12, marginTop: 5 }}>Industry is required</Text>
             )}
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Number of Employees</Text>
+          <View style={{ width: '100%', marginTop: 20 }}>
+            <Text style={{ fontSize: 16, marginBottom: 8 }}>Number of Employees</Text>
             <TextInput
               value={noOfEmployees}
               onChangeText={setNoOfEmployees}
-              style={styles.input}
+              style={{ 
+                borderWidth: 1, 
+                borderColor: '#E0E0E0', 
+                borderRadius: 8, 
+                paddingHorizontal: 12, 
+                paddingVertical: 17, 
+                marginBottom: 16 
+              }}
               placeholder="Enter Number of Employees"
               keyboardType="number-pad"
             />
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Your Designation</Text>
+          <View style={{ width: '100%', marginTop: 20 }}>
+            <Text style={{ fontSize: 16, marginBottom: 8 }}>Your Designation</Text>
             <TextInput
               value={designation}
               onChangeText={setDesignation}
-              style={styles.input}
+              style={{ 
+                borderWidth: 1, 
+                borderColor: '#E0E0E0', 
+                borderRadius: 8, 
+                paddingHorizontal: 12, 
+                paddingVertical: 17, 
+                marginBottom: 16 
+              }}
               placeholder="Enter Designation"
             />
           </View>
 
-          <View style={[styles.inputContainer, { zIndex: 4000 }]}>
-            <Text style={styles.label}>Select Country</Text>
+          <View style={{ width: '100%', marginTop: 20, zIndex: 4000 }}>
+            <Text style={{ fontSize: 16, marginBottom: 8 }}>Select Country</Text>
             <DropDownPicker
               listMode="SCROLLVIEW"
               scrollViewProps={{ nestedScrollEnabled: true }}
@@ -376,8 +435,11 @@ const CompanyDetails = () => {
               }}
               setItems={setCountryItems}
               placeholder="Select Country"
-              style={[styles.dropdown, errors.countryId && styles.dropdownError]}
-              dropDownContainerStyle={styles.dropdownContainer}
+              style={{ 
+                borderColor: errors.countryId ? 'red' : '#E0E0E0',
+                borderRadius: 8,
+              }}
+              dropDownContainerStyle={{ borderColor: '#E0E0E0' }}
               zIndex={4000}
               zIndexInverse={2000}
               onChangeValue={(value) => {
@@ -388,12 +450,12 @@ const CompanyDetails = () => {
               }}
             />
             {errors.countryId && (
-              <Text style={[styles.errorText, { marginTop: 5 }]}>Country is required</Text>
+              <Text style={{ color: 'red', fontSize: 12, marginTop: 5 }}>Country is required</Text>
             )}
           </View>
 
-          <View style={[styles.inputContainer, { zIndex: 3000 }]}>
-            <Text style={styles.label}>Select State</Text>
+          <View style={{ width: '100%', marginTop: 20, zIndex: 3000 }}>
+            <Text style={{ fontSize: 16, marginBottom: 8 }}>Select State</Text>
             <DropDownPicker
               searchable={true}
               listMode="SCROLLVIEW"
@@ -408,8 +470,11 @@ const CompanyDetails = () => {
               }}
               setItems={setStateItems}
               placeholder="Select State"
-              style={[styles.dropdown, errors.stateId && styles.dropdownError]}
-              dropDownContainerStyle={styles.dropdownContainer}
+              style={{ 
+                borderColor: errors.stateId ? 'red' : '#E0E0E0',
+                borderRadius: 8,
+              }}
+              dropDownContainerStyle={{ borderColor: '#E0E0E0' }}
               zIndex={3000}
               zIndexInverse={3000}
               onChangeValue={(value) => {
@@ -419,14 +484,21 @@ const CompanyDetails = () => {
               disabled={!countryId}
             />
             {errors.stateId && (
-              <Text style={[styles.errorText, { marginTop: 5 }]}>State is required</Text>
+              <Text style={{ color: 'red', fontSize: 12, marginTop: 5 }}>State is required</Text>
             )}
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>City</Text>
+          <View style={{ width: '100%', marginTop: 20 }}>
+            <Text style={{ fontSize: 16, marginBottom: 8 }}>City</Text>
             <TextInput
-              style={[styles.input, errors.city && styles.inputError]}
+              style={{ 
+                borderWidth: 1, 
+                borderColor: errors.city ? 'red' : '#E0E0E0', 
+                borderRadius: 8, 
+                paddingHorizontal: 12, 
+                paddingVertical: 17, 
+                marginBottom: 16 
+              }}
               placeholder="Enter City"
               value={city}
               onChangeText={(text) => {
@@ -434,44 +506,69 @@ const CompanyDetails = () => {
                 setErrors({ ...errors, city: false });
               }}
             />
-            {errors.city && <Text style={styles.errorText}>City is required</Text>}
+            {errors.city && <Text style={{ color: 'red', fontSize: 12, marginTop: -10, marginBottom: 8 }}>City is required</Text>}
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Pin Code</Text>
+          <View style={{ width: '100%', marginTop: 20 }}>
+            <Text style={{ fontSize: 16, marginBottom: 8 }}>Pin Code</Text>
             <TextInput
               value={pincode}
               onChangeText={(text) => {
                 setPincode(text);
                 setErrors({ ...errors, pincode: false });
               }}
-              style={[styles.input, errors.pincode && styles.inputError]}
+              style={{ 
+                borderWidth: 1, 
+                borderColor: errors.pincode ? 'red' : '#E0E0E0', 
+                borderRadius: 8, 
+                paddingHorizontal: 12, 
+                paddingVertical: 17, 
+                marginBottom: 16 
+              }}
               placeholder="Enter Pin Code"
               keyboardType="number-pad"
             />
-            {errors.pincode && <Text style={styles.errorText}>Pin Code is required</Text>}
+            {errors.pincode && <Text style={{ color: 'red', fontSize: 12, marginTop: -10, marginBottom: 8 }}>Pin Code is required</Text>}
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Company Address</Text>
+          <View style={{ width: '100%', marginTop: 20 }}>
+            <Text style={{ fontSize: 16, marginBottom: 8 }}>Company Address</Text>
             <TextInput
               value={companyAddress}
               onChangeText={(text) => {
                 setCompanyAddress(text);
                 setErrors({ ...errors, companyAddress: false });
               }}
-              style={[styles.TextArea, errors.companyAddress && styles.inputError]}
+              style={{ 
+                borderWidth: 1, 
+                borderColor: errors.companyAddress ? 'red' : '#ccc', 
+                borderRadius: 8, 
+                padding: 10, 
+                height: 150, 
+                textAlignVertical: 'top' 
+              }}
               placeholder="Enter Company Address"
               multiline={true}
               numberOfLines={6}
               textAlignVertical="top"
             />
             {errors.companyAddress && (
-              <Text style={[styles.errorText, { marginTop: 5 }]}>Company Address is required</Text>
+              <Text style={{ color: 'red', fontSize: 12, marginTop: 5 }}>Company Address is required</Text>
             )}
           </View>
 
-          <TouchableOpacity onPress={handleContinue} style={styles.button}>
+          <TouchableOpacity 
+            onPress={handleContinue} 
+            style={{
+              width: '100%',
+              backgroundColor: Colors.primary,
+              paddingVertical: 16,
+              borderRadius: 8,
+              alignItems: 'center',
+              marginTop: 50,
+            }}
+            disabled={loading}
+          >
             <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold' }}>Continue</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -479,6 +576,7 @@ const CompanyDetails = () => {
     </SafeAreaView>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
