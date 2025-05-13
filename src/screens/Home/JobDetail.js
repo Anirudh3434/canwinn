@@ -18,7 +18,7 @@ import axios from 'axios';
 import { API_ENDPOINTS } from '../../api/apiConfig';
 import RNFS from 'react-native-fs';
 
-const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
+const JobDetailModal = ({ visible, onClose, job, onSuccess , IsSaved , isSaveList , onRefetch}) => {
   // State variables
   const [userId, setUserId] = useState(null);
   const [userData, setUserData] = useState({});
@@ -30,6 +30,10 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isResume, setIsResume] = useState(false);
   const [resumeFileName, setResumeFileName] = useState('');
+  const [save , setSave] = useState(IsSaved || false);
+
+
+  console.log(save, 'IsSaved');
 
   // Fetch user data
   const fetchUserId = async () => {
@@ -89,6 +93,8 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
       setIsLoading(false);
     }
   };
+
+  
 
   // Use effect hooks
   useEffect(() => {
@@ -183,7 +189,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
       setIsLoading(true);
       const response = await axios.post(API_ENDPOINTS.JOB_APPLY, {
         user_id: userId,
-        job_id: job.job_id,
+        job_id: job.job_id
       });
       
       if (response.data.status === 'success') {
@@ -253,31 +259,66 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
       Alert.alert('Error', 'Please log in to save jobs.');
       return;
     }
-    
+  
     if (!job || !job.job_id) {
       Alert.alert('Error', 'Job information is missing. Cannot save at this time.');
       return;
     }
-    
+  
     try {
-      const response = await axios.post(API_ENDPOINTS.SAVE_JOBS, {
-        user_id: userId,
-        job_id: job.job_id,
-      });
-
-      console.log('Save job response:', response.data);
-      if (response.data.status === 'success' && response.data.message === 'Data inserted successfully') {
-        Alert.alert('Success', 'Job saved successfully');
-      } else if (response.data.message === 'You have already saved this job') {
-        Alert.alert('Info', 'Job already saved');
+      if (!save) {
+        // Save the job
+        const response = await axios.post(API_ENDPOINTS.SAVE_JOBS, {
+          user_id: userId,
+          job_id: job.job_id,
+        });
+  
+        console.log('Save job response:', response.data);
+  
+        if (response.data.status === 'success' && response.data.message === 'Data inserted successfully') {
+          setSave(true);
+          Alert.alert('Success', 'Job saved successfully');
+        
+        } else if (response.data.message === 'You have already saved this job') {
+          Alert.alert('Info', 'Job already saved');
+        } else {
+          Alert.alert('Error', response.data.message || 'Failed to save job');
+        }
       } else {
-        Alert.alert('Error', response.data.message || 'Failed to save job');
+        console.log(userId , +job.job_id);
+        const payload = {
+          user_id: userId,
+          job_id: +job.job_id,
+        }
+
+        console.log(payload);
+        const response = await axios.delete(API_ENDPOINTS.UNSAVED_JOBS, 
+          {
+            data: payload,
+          
+          }
+        );
+  
+  
+        console.log('Unsave job response:', response.data);
+  
+        if (response.data.status === 'success') {
+          Alert.alert('Success', 'Job unsaved successfully');
+          setSave(false);
+       if(isSaveList){   
+        onRefetch();
+          onClose();}
+          
+        } else {
+          Alert.alert('Error', response.data.message || 'Failed to unsave job');
+        }
       }
     } catch (error) {
-      console.error('Error saving job:', error);
-      Alert.alert('Error', 'Failed to save job. Please try again.');
+      console.error('Error saving/unsaving job:', error);
+      Alert.alert('Error', 'Something went wrong. Please try again.');
     }
   };
+  
 
   // Safely parse qualifications and skills
   const qualifications = 
@@ -324,7 +365,7 @@ const JobDetailModal = ({ visible, onClose, job, onSuccess }) => {
             </TouchableOpacity>
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <TouchableOpacity onPress={handleSaveJob} style={{ backgroundColor: 'white', borderRadius: 50, padding: 8 }}>
-                <Ionicons name="bookmark-outline" size={24} color={Colors.primary} />
+                <Ionicons name={save ? 'bookmark': 'bookmark-outline'} size={24} color={Colors.primary} />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={shareJob}

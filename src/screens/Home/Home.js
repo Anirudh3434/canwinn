@@ -14,13 +14,14 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
-  BackHandler,
-  ToastAndroid, // Import ToastAndroid for Android
+  BackHandler,  
+  PermissionsAndroid,
 } from 'react-native';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Colors } from '../../theme/color';
+import messaging from '@react-native-firebase/messaging';
 import style from '../../theme/style';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { AppBar } from '@react-native-material/core';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -36,7 +37,7 @@ import useRecommenedJob from '../../hooks/Jobs/recommenedJob';
 import useRecentJobs from '../../hooks/Jobs/recentAddJobs';
 import JobSuccess from '../../Components/Popups/JobSuccess';
 
-export default function  Home() {
+export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigation = useNavigation();
   const [name, setName] = useState('');
@@ -47,6 +48,9 @@ export default function  Home() {
   const [docs, setDocs] = useState();
   const [backPressCount, setBackPressCount] = useState(0);
   const dispatch = useDispatch();
+  const [flag, setFlag] = useState(true);
+  const [fcmToken, setFcmToken] = useState(null);
+  const initialRender = useRef(true);
 
   const closeJobDetail = () => {
     setJobDetailModalVisible(false);
@@ -66,6 +70,97 @@ export default function  Home() {
       console.error('Error fetching user data:', error);
     }
   };
+
+  const requestUserPermission = async () => {
+    const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+  
+    if (enabled) {
+      console.log('Authorization status:', authStatus);
+    }
+  
+    if (Platform.OS === 'android' && Platform.Version >= 33) {
+      await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+    }
+  };
+  
+  const getFCMToken = async () => {
+    try {
+      console.log('getFCMToken....');
+      const token = await messaging().getToken();
+      setFcmToken(token);
+      setFlag(false);
+      return token;
+    } catch (error) {
+      console.error('Error getting FCM token:', error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    if(flag){ getFCMToken();}
+    requestUserPermission();
+  }, []);
+
+
+    const sendFCMToken = async () => {
+      try {
+        const storedUserId = await AsyncStorage.getItem('userId');
+        console.log('storedUserId', storedUserId);
+        console.log('fcmToken', fcmToken);
+        if (storedUserId) {
+          const response = await axios.put(API_ENDPOINTS.FCM_TOKEN, {
+            user_id: +storedUserId,
+            fcm_token: fcmToken,
+          });
+          console.log('FCM Token sent successfully:', response.data);
+        }
+      } catch (error) {
+        console.error('Error sending FCM token:', error);
+      }
+    };
+  
+   
+    useEffect(() => {
+      if (fcmToken) {
+        sendFCMToken();
+      }
+    }, [fcmToken]);
+  
+  useFocusEffect(
+    useCallback(() => {
+      // Skip the initial render to avoid double loading
+      if (initialRender.current) {
+        initialRender.current = false;
+        return;
+      }
+      
+      // Refresh data when screen is focused
+      const refreshData = async () => {
+        console.log('Screen focused, refreshing data...');
+        setRefreshing(true);
+        try {
+          await Promise.all([
+            fetchUserIdAndDetail(),
+            refetchRecommendedJobs && refetchRecommendedJobs(),
+            refetchRecentJobs && refetchRecentJobs(),
+          ]);
+        } catch (error) {
+          console.error('Error refreshing data on focus:', error);
+        } finally {
+          setRefreshing(false);
+        }
+      };
+      
+      refreshData();
+      
+      return () => {
+        // Cleanup if needed
+      };
+    }, [])
+  );
 
   const backAction = () => {
     if (jobDetailModalVisible) {
@@ -92,20 +187,6 @@ export default function  Home() {
     return () => backHandler.remove();
   }, [backPressCount, jobDetailModalVisible, successPop, navigation]);
 
-  useEffect(() => {
-    fetchUserIdAndDetail();
-
-    // Better implementation of interval with cleanup
-    const interval = setInterval(() => {
-      fetchUserIdAndDetail();
-    }, 3000); // Adjusted interval to 3 seconds
-
-    // Cleanup interval when component unmounts
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
-
   const handleSuccess = () => {
     setSuccessPop(true);
   };
@@ -116,8 +197,6 @@ export default function  Home() {
     recommendedError,
     refetch: refetchRecommendedJobs,
   } = useRecommenedJob();
-
-
 
   const { recentJobs, recentLoading, recentError, refetch: refetchRecentJobs } = useRecentJobs();
 
@@ -141,6 +220,11 @@ export default function  Home() {
       setRefreshing(false);
     }
   }, [refetchRecommendedJobs, refetchRecentJobs]);
+
+  // Initial data load
+  useEffect(() => {
+    onRefresh();
+  }, []);
 
   const handleJobPress = (job) => {
     setSelectedJob(job);

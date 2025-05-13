@@ -79,6 +79,7 @@ export default function LinkedinVerify() {
       console.log('API Response:', response.data);
 
       let userId;
+      let role_Id;
 
       if (response.data.status === 'success') {
         console.log('Registration successful');
@@ -103,7 +104,21 @@ export default function LinkedinVerify() {
           console.log('Intro Response:', introResponse.data);
           console.log('Basic Details Response:', basicDetailsResponse.data);
         }
-      } else if (response.data.code === -20001) {
+
+        const stepResponse = await axios.post(API_ENDPOINTS.STEP, {
+          user_id: userId,
+          role_id: role_Id,
+          steps: 1,
+        });
+
+        if (stepResponse.data.status === 'success') {
+          console.log('Step updated successfully');
+          navigation.navigate('Validate');
+        }
+
+        console.log('Step Response:', stepResponse.data);
+      } 
+      else if (response.data.code === -20001) {
         console.log('User already exists, fetching user ID');
 
         const loginResponse = await axios.get(`${API_ENDPOINTS.AUTHENTICATION}?email=${email}`);
@@ -119,12 +134,17 @@ export default function LinkedinVerify() {
           params: { user_id: +userId },
         });
 
+        console.log('Get Steps Response:', getStepsResponse.data);
+
         if (getStepsResponse.data.status == 'error') {
           const stepsResponse = await axios.post(API_ENDPOINTS.STEP, {
             user_id: userId,
             role_id: role_Id,
-            steps: '1',
+            steps: 1,
           });
+
+
+          console.log('Steps Response:', stepsResponse.data);
         }
 
         if (userId) {

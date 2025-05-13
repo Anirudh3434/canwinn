@@ -39,6 +39,7 @@ const API_ENDPOINTS = {
   JOB_APPLY: `${BASE_URL}/apply_job`,
   RECOMMEND_JOBS: `${BASE_URL}/job-recommendation`,
   SAVE_JOBS : `${BASE_URL}/saved-jobs`,
+  FCM_TOKEN : `${BASE_URL}/fcm_token`,
 
   // Others API
 
@@ -60,6 +61,7 @@ const API_ENDPOINTS = {
   DELETE_EMPLOYMENT: `${BASE_URL}/delete_employmet_detail`,
   DELETE_LANGUAGE:  `${BASE_URL}/delete_language`,
   DELETE_PROJECT : `${BASE_URL}/delete_projects`,
+  UNSAVED_JOBS : `${BASE_URL}/delete_saved_jobs`,
 };
 
 export { BASE_URL, API_ENDPOINTS };

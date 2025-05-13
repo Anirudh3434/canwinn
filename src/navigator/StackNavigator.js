@@ -134,7 +134,7 @@ const StackNavigator = () => {
     // Handle splash screen
     setTimeout(() => {
       setShowSplashScreen(false);
-    }, 4000);
+    }, 2000);
 
     // Check initial URL (for background or closed app)
     const handleInitialURL = async () => {

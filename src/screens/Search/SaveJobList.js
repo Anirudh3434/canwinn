@@ -234,12 +234,15 @@ function SaveJobList() {
         />
       ) : (
         renderEmptyState()
-      )}
+      )} 
       <JobDetailModal
         visible={modalVisible}
         onClose={closeJobDetail}
         job={selectedJob}
         onSuccess={handleSuccessPopup}
+        IsSaved={true}
+        onRefetch={refetchJobs}
+        isSaveList={true}
       />
     </SafeAreaView>
   );
